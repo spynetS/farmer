@@ -56,7 +56,8 @@ plant_script :: proc (data: ecs.ScriptData) {
     }
     else {
         tilesheet := io.new_tilesheet(game.assetsManager, "./assets/farm/objects&items/items free.png", {16,16})
-        create_item(game, data.gameObject.transform.pos, Item({sprite=tilesheet.sprites[0][0]}))
+        create_item(game, data.gameObject.transform.pos+{10,0}, Item({sprite=tilesheet.sprites[0][0]}))
+        create_item(game, data.gameObject.transform.pos-{10,0}, Item({sprite=tilesheet.sprites[0][2]}))
         kill_plant(data)
 
     }

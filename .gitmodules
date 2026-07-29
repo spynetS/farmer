@@ -1,0 +1,3 @@
+[submodule "ogamer"]
+	path = ogamer
+	url = git@github.com:spynets/ogamer

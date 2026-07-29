@@ -21,7 +21,7 @@ create_field :: proc (game: ^og.Game, pos: [2]f32) {
 
 
     tilesheet := io.new_tilesheet(game.assetsManager, "./assets/farm/tilemaps/spring farm tilemap.png", {16,16})
-
+    fmt.println(tilesheet.sprites[12][6])
     og.add_component(field, ecs.Tag({tag="field"}))
     og.add_component(field, ecs.NewSpriteRenderer(sprite=tilesheet.sprites[12][6], layer=-1))
 

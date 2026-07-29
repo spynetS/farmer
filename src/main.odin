@@ -37,6 +37,9 @@ main :: proc() {
         for prop in obj.properties {
             if prop.name == "depth" {
                 og.add_component(gameObject, ecs.DepthSort({offset={0, f32(prop.value.(f32))}}))
+                og.add_component(gameObject, ecs.NewRigidbody(type=ecs.BodyType.dynamicBody, disabled_gravity=true))
+                og.add_component(gameObject, ecs.NewCollider(trigger=false))
+                
             }
             
         }

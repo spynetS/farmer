@@ -8,6 +8,34 @@
  "tilecount":3,
  "tiledversion":"1.12.2",
  "tileheight":60,
+ "tiles":[
+        {
+         "id":0,
+         "objectgroup":
+            {
+             "draworder":"index",
+             "id":4,
+             "name":"",
+             "objects":[
+                    {
+                     "height":58.75,
+                     "id":3,
+                     "name":"",
+                     "opacity":1,
+                     "rotation":0,
+                     "type":"",
+                     "visible":true,
+                     "width":17.75,
+                     "x":10,
+                     "y":0.75
+                    }],
+             "opacity":1,
+             "type":"objectgroup",
+             "visible":true,
+             "x":0,
+             "y":0
+            }
+        }],
  "tilewidth":40,
  "type":"tileset",
  "version":"1.10"

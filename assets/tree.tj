@@ -9,7 +9,7 @@
             {
              "name":"depth",
              "type":"int",
-             "value":0
+             "value":120
             }],
      "rotation":0,
      "type":"",

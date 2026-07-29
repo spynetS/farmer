@@ -15,6 +15,8 @@ PlayerState :: enum {
     WALKING_LEFT,
     WALKING_UP,
     WALKING_DOWN,
+    
+    
 }
 
 PlayerData :: struct {
@@ -35,7 +37,7 @@ create_player :: proc (game: ^og.Game) {
 
     pData := new(PlayerData)
     
-    og.add_component(player, ecs.NewCamera(zoom=0.7))
+    og.add_component(player, ecs.NewCamera(zoom=0.8))
     leng := make([]int,3)
     leng[0] = 2
     leng[1] = 8
@@ -117,14 +119,16 @@ player_update :: proc(data: ecs.ScriptData) {
         pos= wp,
         size={100,100},
         rot=0,
-        sprite=sprite
+        sprite=sprite,
+        layer=10000000000
     }))
 
     if og.is_mouse_down(input.MouseButton.LEFT) {
         create_plant(game,wp)
 
     }
-    if og.is_mouse_down(input.MouseButton.RIGHT) {
+    if og.is_mouse_pressed(input.MouseButton.RIGHT) {
+        create_tool(game);
         create_field(game,wp)
     }
 }

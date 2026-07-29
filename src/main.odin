@@ -27,13 +27,20 @@ main :: proc() {
     og.current_game = game;
     
     create_debug(game)
-
     create_player(game)
 
     _map := tiled.load_map(game.assetsManager, "./assets/map.tmj")
     fmt.println("MAP:",_map.tilesets)
     defer tiled.destroy_map(_map)
-    tiled.create_from_map(game, _map, {6,6}, on_create = proc(obj: tiled.Object, transform: ecs.Transform) {});
+    tiled.create_from_map(game, _map, {6,6}, on_create = proc(obj: tiled.Object, gameObject: ecs.GameObject) {
+        fmt.println("PROPS:", obj.properties)
+        for prop in obj.properties {
+            if prop.name == "depth" {
+                og.add_component(gameObject, ecs.DepthSort({offset={0, f32(prop.value.(f32))}}))
+            }
+            
+        }
+    });
 
 
     og.start_game(game);

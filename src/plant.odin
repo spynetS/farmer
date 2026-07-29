@@ -42,6 +42,7 @@ create_plant :: proc(game: ^og.Game, pos: [2]f32) {
 
     pdata.sprite_comp = og.add_component(plant, ecs.NewSpriteRenderer(sprite=pdata.sprites[0]))
     og.add_component(plant, ecs.NewScriptComponent(ecs.NewScript(data=pdata, update=plant_script)))
+    og.add_component(plant, ecs.NewDepthSort())
 }
 
 kill_plant :: proc (data: ecs.ScriptData) {

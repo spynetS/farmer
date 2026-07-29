@@ -1,0 +1,14 @@
+{ "columns":3,
+ "image":"farm\/objects&items\/tree.png",
+ "imageheight":60,
+ "imagewidth":120,
+ "margin":0,
+ "name":"tree",
+ "spacing":0,
+ "tilecount":3,
+ "tiledversion":"1.12.2",
+ "tileheight":60,
+ "tilewidth":40,
+ "type":"tileset",
+ "version":"1.10"
+}

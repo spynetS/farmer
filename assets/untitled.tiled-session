@@ -1,0 +1,20 @@
+{
+    "activeFile": "",
+    "expandedProjectPaths": [
+    ],
+    "fileStates": {
+    },
+    "last.imagePath": "/home/spy/dev/farmer/assets/farm/objects&items",
+    "last.objectTemplatePath": "/home/spy/dev/farmer/assets",
+    "openFiles": [
+    ],
+    "project": "untitled.tiled-project",
+    "property.type": "int",
+    "recentFiles": [
+    ],
+    "tileset.lastUsedFormat": "json",
+    "tileset.tileSize": {
+        "height": 60,
+        "width": 40
+    }
+}

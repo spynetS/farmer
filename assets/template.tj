@@ -1,0 +1,25 @@
+{ "object":
+    {
+     "gid":37,
+     "height":16,
+     "id":2,
+     "name":"",
+     "opacity":1,
+     "properties":[
+            {
+             "name":"depth",
+             "type":"bool",
+             "value":false
+            }],
+     "rotation":0,
+     "type":"",
+     "visible":true,
+     "width":16
+    },
+ "tileset":
+    {
+     "firstgid":1,
+     "source":"farm objects free.tsj"
+    },
+ "type":"template"
+}

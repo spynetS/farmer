@@ -1,0 +1,25 @@
+{ "object":
+    {
+     "gid":2,
+     "height":60,
+     "id":23,
+     "name":"",
+     "opacity":1,
+     "properties":[
+            {
+             "name":"depth",
+             "type":"int",
+             "value":0
+            }],
+     "rotation":0,
+     "type":"",
+     "visible":true,
+     "width":40
+    },
+ "tileset":
+    {
+     "firstgid":1,
+     "source":"tree.tsj"
+    },
+ "type":"template"
+}

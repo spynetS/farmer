@@ -30,6 +30,7 @@ create_player :: proc (game: ^og.Game) {
 
     og.add_component(player, ecs.NewRigidbody(type=ecs.BodyType.dynamicBody, disabled_gravity=true, disabled_rotation=true, linear_damping=10))
     og.add_component(player, ecs.NewCollider(trigger=true, size={-60,0}))
+    og.add_component(player, ecs.NewDepthSort(offset={0,20}))
     
 
     pData := new(PlayerData)

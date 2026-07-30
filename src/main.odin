@@ -13,7 +13,7 @@ game: ^og.Game
 
 create_debug :: proc(game: ^og.Game) {
     fps := og.new_gameobject(game.ecs)
-    fps.transform.pos = {50,50}
+    fps.transform.pos = {1050,50}
     text := og.add_component(fps, ecs.NewUiText("asd"))
     og.add_component(fps, ecs.NewScriptComponent(ecs.NewScript(data=text, update = proc (data:ecs.ScriptData) {
         text := cast(^ecs.UIText)data.data
@@ -37,7 +37,7 @@ main :: proc() {
         for prop in obj.properties {
             if prop.name == "depth" {
                 og.add_component(gameObject, ecs.DepthSort({offset={0, f32(prop.value.(f32))}}))
-                og.add_component(gameObject, ecs.NewRigidbody(type=ecs.BodyType.dynamicBody, disabled_gravity=true))
+                og.add_component(gameObject, ecs.NewRigidbody(type=ecs.BodyType.kinematicBody, disabled_gravity=true, disabled_rotation=true))
                 og.add_component(gameObject, ecs.NewCollider(trigger=false))
                 
             }

@@ -6,6 +6,9 @@ import "../ogamer/renderer"
 import "../ogamer/events"
 import "../ogamer/io"
 import "core:math"
+import "core:fmt"
+
+import b2 "vendor:box2d"
 
 SPEED :: 10
 
@@ -14,35 +17,38 @@ PlayerState :: enum {
     WALKING_RIGHT,
     WALKING_LEFT,
     WALKING_UP,
-    WALKING_DOWN,
-    
-    
+    WALKING_DOWN,    
 }
 
 PlayerData :: struct {
     state:PlayerState,
-    animator: ^ecs.SpriteAnimator,
-    
+    gameObject: ecs.GameObject,
+    text: ecs.GameObject,
+    selected_tool: int
 }
 
 
 create_player :: proc (game: ^og.Game) {
+    pData := new(PlayerData)
+
+
     player := og.new_gameobject(game.ecs);
     player.transform.size = {150,150}
+
+    pData.gameObject = player
+
 
     og.add_component(player, ecs.NewRigidbody(type=ecs.BodyType.dynamicBody, disabled_gravity=true, disabled_rotation=true, linear_damping=10))
     og.add_component(player, ecs.NewCollider(trigger=true, size={-60,0}))
     og.add_component(player, ecs.NewDepthSort(offset={0,20}))
-    
 
-    pData := new(PlayerData)
     
     og.add_component(player, ecs.NewCamera(zoom=0.8))
     leng := make([]int,3)
     leng[0] = 2
     leng[1] = 8
     leng[2] = 8
-    pData.animator =  og.add_component(player, ecs.NewSpriteAnimator(
+    og.add_component(player, ecs.NewSpriteAnimator(
         sprites_length=leng,
         sprites=io.new_tilesheet(game.assetsManager, "./assets/farm/characters/main character/walk and idle.png", {24,24}).sprites))
 
@@ -53,27 +59,36 @@ create_player :: proc (game: ^og.Game) {
             ecs.destroy_entity(data.ecs, other.entity)
         },
     )))
+
+
+    text := og.new_gameobject(game.ecs);
+    text.transform.pos = {50,50}
+    og.add_component(text, ecs.NewUiText("TOOL: 1"))
+    pData.text = text
+
 }
 
 hanlde_animation :: proc(pData: ^PlayerData) {
+
+    animator := og.get_component(pData.gameObject, ecs.SpriteAnimator)
+
     #partial switch (pData.state) {
         case .IDLE:
-        pData.animator.active_animation = 0
-        pData.animator.time = 0.2
+        animator.active_animation = 0
+        animator.time = 0.2
         case .WALKING_RIGHT:
-        pData.animator.active_animation = 1
-        pData.animator.time = 0.1
-        pData.animator.sprite_comp.inverted = true
+        animator.active_animation = 1
+        animator.time = 0.1
+        animator.sprite_comp.inverted = true
         case .WALKING_LEFT:
-        pData.animator.active_animation = 1
-        pData.animator.time = 0.1
-        pData.animator.sprite_comp.inverted = false
+        animator.active_animation = 1
+        animator.time = 0.1
+        animator.sprite_comp.inverted = false
         case .WALKING_UP, .WALKING_DOWN:
-        pData.animator.active_animation = 1
-        pData.animator.time = 0.1
+        animator.active_animation = 1
+        animator.time = 0.1
 
     }
-    
 }
 
 
@@ -128,7 +143,40 @@ player_update :: proc(data: ecs.ScriptData) {
 
     }
     if og.is_mouse_pressed(input.MouseButton.RIGHT) {
-        create_tool(game);
-        create_field(game,wp)
+        switch pdata.selected_tool {
+        case 0:
+            og.add_child(pdata.gameObject, create_tool(game))
+            create_field(game, wp);
+        case 1:
+
+            // FIXME it doesnt work 
+            filter := b2.DefaultQueryFilter()
+            PIXELS_PER_METER :: 50
+            pos := data.gameObject.transform.pos
+            direction := (wp - pos) / PIXELS_PER_METER
+
+            result := b2.World_CastRayClosest(data.world.world_id, pos / PIXELS_PER_METER, pos / PIXELS_PER_METER + direction,  filter)
+            if result.hit {
+                entity := data.world.entites_by_shape[result.shapeId]
+                fmt.println(result)
+                fmt.println(entity)
+                ecs.destroy_entity(data.ecs, entity)
+            }
+        }
     }
+    
+    if og.is_key_pressed(input.KeyboardKey.ONE) {
+        pdata.selected_tool = 0;
+    }
+    if og.is_key_pressed(input.KeyboardKey.TWO) {
+        pdata.selected_tool = 1;
+    }
+
+
+    // UPDATE TOOL TEXT
+    uitext := og.get_component(pdata.text, ecs.UIText)
+    uitext.text = fmt.tprintf("TOOL: %d", pdata.selected_tool)
+    
+
+
 }

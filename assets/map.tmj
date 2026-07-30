@@ -256,6 +256,102 @@
                  "template":"tree.tj",
                  "x":256,
                  "y":384
+                }, 
+                {
+                 "id":82,
+                 "template":"tree.tj",
+                 "x":366.5,
+                 "y":387.5
+                }, 
+                {
+                 "id":83,
+                 "template":"tree.tj",
+                 "x":201,
+                 "y":383.5
+                }, 
+                {
+                 "id":84,
+                 "template":"tree.tj",
+                 "x":162.5,
+                 "y":380.5
+                }, 
+                {
+                 "id":85,
+                 "template":"tree.tj",
+                 "x":96,
+                 "y":381.5
+                }, 
+                {
+                 "id":86,
+                 "template":"tree.tj",
+                 "x":72,
+                 "y":458
+                }, 
+                {
+                 "id":87,
+                 "template":"tree.tj",
+                 "x":164.5,
+                 "y":419
+                }, 
+                {
+                 "id":88,
+                 "template":"tree.tj",
+                 "x":114,
+                 "y":461.5
+                }, 
+                {
+                 "id":89,
+                 "template":"tree.tj",
+                 "x":75,
+                 "y":499
+                }, 
+                {
+                 "id":90,
+                 "template":"tree.tj",
+                 "x":38.5,
+                 "y":550.5
+                }, 
+                {
+                 "id":91,
+                 "template":"tree.tj",
+                 "x":30.5,
+                 "y":565
+                }, 
+                {
+                 "id":92,
+                 "template":"tree.tj",
+                 "x":128,
+                 "y":618.5
+                }, 
+                {
+                 "id":93,
+                 "template":"tree.tj",
+                 "x":255.5,
+                 "y":606
+                }, 
+                {
+                 "id":94,
+                 "template":"tree.tj",
+                 "x":440.5,
+                 "y":568
+                }, 
+                {
+                 "id":95,
+                 "template":"tree.tj",
+                 "x":238.5,
+                 "y":541.5
+                }, 
+                {
+                 "id":96,
+                 "template":"tree.tj",
+                 "x":155,
+                 "y":555
+                }, 
+                {
+                 "id":97,
+                 "template":"tree.tj",
+                 "x":178,
+                 "y":492
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -264,7 +360,7 @@
          "y":0
         }],
  "nextlayerid":12,
- "nextobjectid":82,
+ "nextobjectid":98,
  "orientation":"orthogonal",
  "renderorder":"left-up",
  "tiledversion":"1.12.2",

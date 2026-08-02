@@ -45,8 +45,8 @@ create_plant :: proc(game: ^og.Game, pos: [2]f32) -> (og.GameObject, bool) {
 
 kill_plant :: proc (data: ecs.ScriptData) {
     tilesheet := io.new_tilesheet(game.assetsManager, "./assets/farm/objects&items/items free.png", {16,16})
-    item1 := create_item(game, data.gameObject.transform.pos+{10,0}, Item({"pumpkin"}))
-    item2 := create_item(game, data.gameObject.transform.pos-{10,0}, Item({"pumpkin"}))
+    item1 := create_item(game, data.gameObject.transform.pos+{10,0}, Item({tag="pumpkin", use=nil}))
+    item2 := create_item(game, data.gameObject.transform.pos-{10,0}, Item({tag="pumpkin", use=nil}))
     og.add_component(item1, ecs.NewSpriteRenderer(sprite=tilesheet.sprites[0][0]))
     og.add_component(item2, ecs.NewSpriteRenderer(sprite=tilesheet.sprites[0][0]))
 

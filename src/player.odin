@@ -62,10 +62,9 @@ create_player :: proc (game: ^og.Game) {
             pdata := cast(^PlayerData)data.data
             if tag, has := og.get_component(other, ecs.Tag); has {
                 sprite_comp, ok := og.get_component(other, ecs.SpriteRenderer)
-                add_item(&pdata.inventory, tag.tag, sprite=sprite_comp.sprite)
+                add_item(&pdata.inventory, generate_item_from_tag(tag.tag), sprite=sprite_comp.sprite)
                 ecs.destroy_entity(data.ecs, other.entity)
             }
-
         },
     )))
 
@@ -151,36 +150,18 @@ player_update :: proc(data: ecs.ScriptData) {
     }))
 
     if og.is_mouse_pressed(input.MouseButton.LEFT) {
-        if get_count(&pdata.inventory, "pumpkin") > 0 {
-            if plant, ok := create_plant(game,wp); ok {
-                path := "./assets/farm/objects&items/plants free.png"
-                sprites : [][]io.Sprite = make([][]io.Sprite,5)
-                sprites[0] = make([]io.Sprite,1)
-                sprites[0][0] = io.load(game.assetsManager, path, {0,0}, {16,16})
-                sprites[1] = make([]io.Sprite,1)
-                sprites[1][0] = io.load(game.assetsManager, path, {1,0}, {16,16})
-                sprites[2] = make([]io.Sprite,1)
-                sprites[2][0] = io.load(game.assetsManager, path, {2,0}, {16,16})
-                sprites[3] = make([]io.Sprite,1)
-                sprites[3][0] = io.load(game.assetsManager, path, {3,0}, {16,16})
-                sprites[4] = make([]io.Sprite,1)
-                sprites[4][0] = io.load(game.assetsManager, path, {4,0}, {16,16})
 
-
-                
-                og.add_component(plant, ecs.NewSpriteAnimator(sprites=sprites))
-                remove_item(&pdata.inventory, "pumpkin")
-            }
-
-        }
     }
     if og.is_mouse_pressed(input.MouseButton.RIGHT) {
-        switch pdata.selected_tool {
-        case 0:
-            og.add_child(pdata.gameObject, create_tool(game))
-            create_field(game, wp);
-        case 1:
+        i := 0
+        for tag, item in pdata.inventory.items {
+            if i == pdata.selected_tool do use_item(&pdata.inventory, tag, data)
+            i+=1
+        }
 
+    }
+    if og.is_mouse_pressed(input.MouseButton.LEFT) {
+    
             pos := data.gameObject.transform.pos
             mpos := input.get_world_mouse_position()
             direction := linalg.normalize0(mpos-pos) * 300
@@ -193,8 +174,8 @@ player_update :: proc(data: ecs.ScriptData) {
                 fmt.println(result)
                 fmt.println(entity)
             }
-        }
     }
+
     
     if og.is_key_pressed(input.KeyboardKey.ONE) {
         pdata.selected_tool = 0;
@@ -202,13 +183,18 @@ player_update :: proc(data: ecs.ScriptData) {
     if og.is_key_pressed(input.KeyboardKey.TWO) {
         pdata.selected_tool = 1;
     }
+    if og.is_key_pressed(input.KeyboardKey.THREE) {
+        pdata.selected_tool = 2;
+    }
+
     renderer.add_command(data.renderer, renderer.Line({pdata.start, pdata.end, renderer.get_color(0x00ff00ff)}))
     draw_inventory(data.renderer, &pdata.inventory)
 
     // UPDATE TOOL TEXT
     // uitext := og.get_component(pdata.text, ecs.UIText)
     // uitext.text = fmt.tprintf("TOOL: %d", pdata.selected_tool)
-    
+}
 
+plant :: proc (data: ecs.ScriptData) {
 
 }

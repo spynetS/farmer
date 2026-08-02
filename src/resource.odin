@@ -12,9 +12,9 @@ ResourceState :: enum {
 
 Resource :: struct {
     state   : ResourceState,
-    timer   : f32,
+    damage_timer   : f32,
     og_size : og.Vector2,
-    health  : f32
+    health  : f32,
 }
 
 create_resource :: proc (health: f32 = 5) -> ecs.Script {
@@ -31,17 +31,17 @@ create_resource :: proc (health: f32 = 5) -> ecs.Script {
             case .BEGIN_DAMAGE:
                 rdata.og_size = data.gameObject.transform.size
                 data.gameObject.transform.size *= 0.9
-                rdata.timer = 0.1
+                rdata.damage_timer = 0.1
                 rdata.state = ResourceState.TAKING_DAMAGE
                 rdata.health -= 1
 
             case .TAKING_DAMAGE:
-                rdata.timer -= data.dt
-                if rdata.timer <= 0 {
+                rdata.damage_timer -= data.dt
+                if rdata.damage_timer <= 0 {
                     if rdata.health <= 0 {
                         for i in 0..<rand.int_range(2,6) {
 
-                            item := create_item(game, data.gameObject.transform.pos, Item({"wood"}));
+                            item := create_item(game, data.gameObject.transform.pos, Item({tag="wood", use=nil}));
                             tilesheet := io.new_tilesheet(game.assetsManager, "./assets/farm/objects&items/items free.png", {16,16})
                             og.add_component(item, ecs.NewSpriteRenderer(sprite=tilesheet.sprites[2][0]))
                         }

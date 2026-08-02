@@ -2,18 +2,22 @@ package main;
 
 import rn "../ogamer/renderer"
 import "../ogamer/io"
+import "../ogamer/ecs"
 import "core:fmt"
 
 
+
 Inventory :: struct {
+    items: map[ItemTag]Item,
     count: map[ItemTag]int,
     sprites: map[ItemTag]io.Sprite
 }
 ItemTag :: string
 
-add_item :: proc(inv: ^Inventory, item: ItemTag, amount: int = 1, sprite: io.Sprite = io.Sprite({})) {
-    inv.count[item] += amount
-    if sprite.texture != "" do inv.sprites[item] = sprite
+add_item :: proc(inv: ^Inventory, item: Item, amount: int = 1, sprite: io.Sprite = io.Sprite({})) {
+    inv.count[item.tag] += amount
+    inv.items[item.tag] = item
+    if sprite.texture != "" do inv.sprites[item.tag] = sprite
 }
 
 remove_item :: proc(inv: ^Inventory, item: ItemTag, amount: int = 1) {
@@ -24,7 +28,11 @@ remove_item :: proc(inv: ^Inventory, item: ItemTag, amount: int = 1) {
 get_count :: proc (inv: ^Inventory, item: ItemTag) -> int {
     return inv.count[item]
 }
- 
+
+use_item :: proc(inv: ^Inventory, item: ItemTag, data: ecs.ScriptData) {
+    if inv.items[item].use != nil do inv.items[item].use(data)
+}
+
 draw_inventory :: proc(renderer: ^rn.Renderer, inv: ^Inventory) {
     i := 0
     for item, amount in inv.count {

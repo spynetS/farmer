@@ -14,18 +14,14 @@ create_field :: proc (game: ^og.Game, pos: [2]f32) {
         if field.transform.pos == pos do found = true
     }
     if found do return
-    fmt.println("ADDED FIELD")
 
     field := og.new_gameobject(game.ecs);
     field.transform.pos = pos
 
 
-    tilesheet := io.new_tilesheet(game.assetsManager, "./assets/farm/tilemaps/spring farm tilemap.png", {16,16})
-    fmt.println(tilesheet.sprites[12][6])
+    sprite := io.load(game.assetsManager, "./assets/farm/field.png")
     og.add_component(field, ecs.Tag({tag="field"}))
-    og.add_component(field, ecs.NewSpriteRenderer(sprite=tilesheet.sprites[12][6], layer=-1))
-
-
+    og.add_component(field, ecs.NewSpriteRenderer(sprite=sprite, layer=-1))
 }
 
 field_script :: proc(data: ecs.ScriptData) {

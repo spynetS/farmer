@@ -30,8 +30,16 @@ main :: proc() {
     create_player(game)
 
     tilesheet := io.new_tilesheet(game.assetsManager, "./assets/farm/objects&items/items free.png", {16,16})
-    start_pump := create_item(game, {-150,100}, Item({"pumpkin"}))
+    start_pump := create_item(game, {-150,100}, generate_item_from_tag("pumpkin"))
     og.add_component(start_pump, ecs.NewSpriteRenderer(sprite=tilesheet.sprites[0][0]))
+
+//    start_wood := create_item(game, {-150,0}, generate_item_from_tag("wood"))
+    // og.add_component(start_wood, ecs.NewSpriteRenderer(sprite=tilesheet.sprites[2][0]))
+
+    // start_hoe := create_item(game, {-150,-100}, generate_item_from_tag("hoe"))
+    // og.add_component(start_hoe, ecs.NewSpriteRenderer(sprite=io.load(game.assetsManager, "./assets/farm/objects&items/hoe.png")))
+
+
 
 
     _map := tiled.load_map(game.assetsManager, "./assets/map.tmj")
@@ -43,9 +51,8 @@ main :: proc() {
             if prop.name == "depth" {
                 og.add_component(gameObject, ecs.DepthSort({offset={0, f32(prop.value.(f32))}}))
                 og.add_component(gameObject, ecs.NewRigidbody(type=ecs.BodyType.kinematicBody, disabled_gravity=true, disabled_rotation=true))
-                og.add_component(gameObject, ecs.NewCollider(trigger=false))
+                og.add_component(gameObject, ecs.NewCollider(trigger=true))
                 og.add_component(gameObject, ecs.NewScriptComponent(create_resource()))
-                
             }
             
         }

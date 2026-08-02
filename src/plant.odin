@@ -7,25 +7,24 @@ import "../ogamer/ecs"
 PlantData :: struct {
     current_age : f32,
     max_age     : f32,
-    sprites     : []io.Sprite,
     sprite_comp : ^ecs.SpriteRenderer,
 }
 
-create_plant :: proc(game: ^og.Game, pos: [2]f32) {
+create_plant :: proc(game: ^og.Game, pos: [2]f32) -> (og.GameObject, bool) {
 
     fields := ecs.get_gameobjects_tag(game.ecs, "field")
     found := false
     for field in fields {
         if field.transform.pos == pos do found =true
     }
-    if !found do return
+    if !found do return og.GameObject({}), false
     
     plants := ecs.get_gameobjects_tag(game.ecs, "plant")
     found = false
     for plant in plants {
         if plant.transform.pos == pos do found =true
     }
-    if found do return
+    if found do return og.GameObject({}), false
 
 
     plant := og.new_gameobject(game.ecs)
@@ -36,31 +35,36 @@ create_plant :: proc(game: ^og.Game, pos: [2]f32) {
     pdata := new(PlantData)
     pdata.current_age = 0
     pdata.max_age = 4
-    pdata.sprites=tilesheet.sprites[0]
     og.add_component(plant, ecs.Tag({tag="plant"}))
 
 
-    pdata.sprite_comp = og.add_component(plant, ecs.NewSpriteRenderer(sprite=pdata.sprites[0]))
     og.add_component(plant, ecs.NewScriptComponent(ecs.NewScript(data=pdata, update=plant_script)))
     og.add_component(plant, ecs.NewDepthSort())
+    return plant, true
 }
 
 kill_plant :: proc (data: ecs.ScriptData) {
+    tilesheet := io.new_tilesheet(game.assetsManager, "./assets/farm/objects&items/items free.png", {16,16})
+    item1 := create_item(game, data.gameObject.transform.pos+{10,0}, Item({"pumpkin"}))
+    item2 := create_item(game, data.gameObject.transform.pos-{10,0}, Item({"pumpkin"}))
+    og.add_component(item1, ecs.NewSpriteRenderer(sprite=tilesheet.sprites[0][0]))
+    og.add_component(item2, ecs.NewSpriteRenderer(sprite=tilesheet.sprites[0][0]))
+
     ecs.destroy_entity(data.gameObject.ecs, data.gameObject.entity)
 }
 
 plant_script :: proc (data: ecs.ScriptData) {
     pdata := cast(^PlantData)data.data
-    if int(pdata.current_age) < len(pdata.sprites){
-        pdata.sprite_comp.sprite = pdata.sprites[int(pdata.current_age)]
+    pdata.current_age += data.dt
+    if pdata.current_age < pdata.max_age {
         pdata.current_age += data.dt
     }
     else {
-        tilesheet := io.new_tilesheet(game.assetsManager, "./assets/farm/objects&items/items free.png", {16,16})
-        create_item(game, data.gameObject.transform.pos+{10,0}, Item({sprite=tilesheet.sprites[0][0]}))
-        create_item(game, data.gameObject.transform.pos-{10,0}, Item({sprite=tilesheet.sprites[0][2]}))
         kill_plant(data)
-
+    }
+    if animator,has := og.get_component(data.gameObject, ecs.SpriteAnimator); has {
+        animations := f32(len(animator.sprites))
+        animator.active_animation = cast(int) (pdata.current_age/pdata.max_age * animations)        
     }
 
 }

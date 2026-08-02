@@ -23,11 +23,16 @@ create_debug :: proc(game: ^og.Game) {
 
 
 main :: proc() {
-    game = og.init_game(og.RenderSettings({144}));
+    game = og.init_game(og.RenderSettings({60}));
     og.current_game = game;
     
     create_debug(game)
     create_player(game)
+
+    tilesheet := io.new_tilesheet(game.assetsManager, "./assets/farm/objects&items/items free.png", {16,16})
+    start_pump := create_item(game, {-150,100}, Item({"pumpkin"}))
+    og.add_component(start_pump, ecs.NewSpriteRenderer(sprite=tilesheet.sprites[0][0]))
+
 
     _map := tiled.load_map(game.assetsManager, "./assets/map.tmj")
     fmt.println("MAP:",_map.tilesets)
@@ -39,6 +44,7 @@ main :: proc() {
                 og.add_component(gameObject, ecs.DepthSort({offset={0, f32(prop.value.(f32))}}))
                 og.add_component(gameObject, ecs.NewRigidbody(type=ecs.BodyType.kinematicBody, disabled_gravity=true, disabled_rotation=true))
                 og.add_component(gameObject, ecs.NewCollider(trigger=false))
+                og.add_component(gameObject, ecs.NewScriptComponent(create_resource()))
                 
             }
             

@@ -6,6 +6,7 @@ import "../ogamer/renderer"
 import "../ogamer/events"
 import "../ogamer/io"
 import "core:math"
+import "core:math/linalg"
 import "core:fmt"
 
 import b2 "vendor:box2d"
@@ -24,7 +25,9 @@ PlayerData :: struct {
     state:PlayerState,
     gameObject: ecs.GameObject,
     text: ecs.GameObject,
-    selected_tool: int
+    selected_tool: int,
+    start, end : [2]f32,
+    inventory: Inventory
 }
 
 
@@ -41,7 +44,7 @@ create_player :: proc (game: ^og.Game) {
     og.add_component(player, ecs.NewRigidbody(type=ecs.BodyType.dynamicBody, disabled_gravity=true, disabled_rotation=true, linear_damping=10))
     og.add_component(player, ecs.NewCollider(trigger=true, size={-60,0}))
     og.add_component(player, ecs.NewDepthSort(offset={0,20}))
-
+\
     
     og.add_component(player, ecs.NewCamera(zoom=0.8))
     leng := make([]int,3)
@@ -56,7 +59,13 @@ create_player :: proc (game: ^og.Game) {
         data = pData,
         update=player_update,
         on_trigger_enter = proc (data:ecs.ScriptData, other: og.GameObject) {
-            ecs.destroy_entity(data.ecs, other.entity)
+            pdata := cast(^PlayerData)data.data
+            if tag, has := og.get_component(other, ecs.Tag); has {
+                sprite_comp, ok := og.get_component(other, ecs.SpriteRenderer)
+                add_item(&pdata.inventory, tag.tag, sprite=sprite_comp.sprite)
+                ecs.destroy_entity(data.ecs, other.entity)
+            }
+
         },
     )))
 
@@ -66,11 +75,14 @@ create_player :: proc (game: ^og.Game) {
     og.add_component(text, ecs.NewUiText("TOOL: 1"))
     pData.text = text
 
+
+
 }
 
 hanlde_animation :: proc(pData: ^PlayerData) {
 
-    animator := og.get_component(pData.gameObject, ecs.SpriteAnimator)
+    animator    := og.get_component(pData.gameObject, ecs.SpriteAnimator)
+    sprite_comp := og.get_component(pData.gameObject, ecs.SpriteRenderer)
 
     #partial switch (pData.state) {
         case .IDLE:
@@ -79,11 +91,11 @@ hanlde_animation :: proc(pData: ^PlayerData) {
         case .WALKING_RIGHT:
         animator.active_animation = 1
         animator.time = 0.1
-        animator.sprite_comp.inverted = true
+        sprite_comp.inverted = true
         case .WALKING_LEFT:
         animator.active_animation = 1
         animator.time = 0.1
-        animator.sprite_comp.inverted = false
+        sprite_comp.inverted = false
         case .WALKING_UP, .WALKING_DOWN:
         animator.active_animation = 1
         animator.time = 0.1
@@ -138,9 +150,29 @@ player_update :: proc(data: ecs.ScriptData) {
         layer=10000000000
     }))
 
-    if og.is_mouse_down(input.MouseButton.LEFT) {
-        create_plant(game,wp)
+    if og.is_mouse_pressed(input.MouseButton.LEFT) {
+        if get_count(&pdata.inventory, "pumpkin") > 0 {
+            if plant, ok := create_plant(game,wp); ok {
+                path := "./assets/farm/objects&items/plants free.png"
+                sprites : [][]io.Sprite = make([][]io.Sprite,5)
+                sprites[0] = make([]io.Sprite,1)
+                sprites[0][0] = io.load(game.assetsManager, path, {0,0}, {16,16})
+                sprites[1] = make([]io.Sprite,1)
+                sprites[1][0] = io.load(game.assetsManager, path, {1,0}, {16,16})
+                sprites[2] = make([]io.Sprite,1)
+                sprites[2][0] = io.load(game.assetsManager, path, {2,0}, {16,16})
+                sprites[3] = make([]io.Sprite,1)
+                sprites[3][0] = io.load(game.assetsManager, path, {3,0}, {16,16})
+                sprites[4] = make([]io.Sprite,1)
+                sprites[4][0] = io.load(game.assetsManager, path, {4,0}, {16,16})
 
+
+                
+                og.add_component(plant, ecs.NewSpriteAnimator(sprites=sprites))
+                remove_item(&pdata.inventory, "pumpkin")
+            }
+
+        }
     }
     if og.is_mouse_pressed(input.MouseButton.RIGHT) {
         switch pdata.selected_tool {
@@ -149,18 +181,17 @@ player_update :: proc(data: ecs.ScriptData) {
             create_field(game, wp);
         case 1:
 
-            // FIXME it doesnt work 
-            filter := b2.DefaultQueryFilter()
-            PIXELS_PER_METER :: 50
             pos := data.gameObject.transform.pos
-            direction := (wp - pos) / PIXELS_PER_METER
+            mpos := input.get_world_mouse_position()
+            direction := linalg.normalize0(mpos-pos) * 300
+            result := og.raycast(pos, direction);
+            
+            pdata.start, pdata.end = pos, pos+direction
 
-            result := b2.World_CastRayClosest(data.world.world_id, pos / PIXELS_PER_METER, pos / PIXELS_PER_METER + direction,  filter)
             if result.hit {
                 entity := data.world.entites_by_shape[result.shapeId]
                 fmt.println(result)
                 fmt.println(entity)
-                ecs.destroy_entity(data.ecs, entity)
             }
         }
     }
@@ -171,11 +202,12 @@ player_update :: proc(data: ecs.ScriptData) {
     if og.is_key_pressed(input.KeyboardKey.TWO) {
         pdata.selected_tool = 1;
     }
-
+    renderer.add_command(data.renderer, renderer.Line({pdata.start, pdata.end, renderer.get_color(0x00ff00ff)}))
+    draw_inventory(data.renderer, &pdata.inventory)
 
     // UPDATE TOOL TEXT
-    uitext := og.get_component(pdata.text, ecs.UIText)
-    uitext.text = fmt.tprintf("TOOL: %d", pdata.selected_tool)
+    // uitext := og.get_component(pdata.text, ecs.UIText)
+    // uitext.text = fmt.tprintf("TOOL: %d", pdata.selected_tool)
     
 
 

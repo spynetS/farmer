@@ -52,7 +52,9 @@ generate_item_from_tag :: proc(tag: string) -> Item{
                 math.round_f32((wp.y - gs/2) / gs) * gs + gs / 2
             }
 
-            og.add_child(data.gameObject, create_tool(game))
+            //og.add_child(data.gameObject, create_tool(game))
+            t := create_tool(game)
+            t.transform.pos = wp
             create_field(game, wp);
 
         }})

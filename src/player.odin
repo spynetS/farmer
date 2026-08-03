@@ -43,7 +43,7 @@ create_player :: proc (game: ^og.Game) {
     og.add_component(player, ecs.NewRigidbody(type=ecs.BodyType.dynamicBody, disabled_gravity=true, disabled_rotation=true, linear_damping=10))
     og.add_component(player, ecs.NewCollider(trigger=true, size={-60,0}))
     og.add_component(player, ecs.NewDepthSort(offset={0,20}))
-\
+
     
     og.add_component(player, ecs.NewCamera(zoom=0.8))
     leng := make([]int,3)
@@ -102,7 +102,8 @@ player_update :: proc(data: ecs.ScriptData) {
         pdata.state == .WALKING_UP ||
         pdata.state == .WALKING_DOWN
     {pdata.state = .IDLE}
-    
+
+    // warlking
     if og.is_key_down(input.KeyboardKey.A) {
         pdata.state = .WALKING_LEFT
         og.apply_force(data.gameObject.entity, {-1,0}*SPEED)
@@ -129,7 +130,7 @@ player_update :: proc(data: ecs.ScriptData) {
         math.round_f32((wp.y - gs/2) / gs) * gs + gs / 2
     }
 
-    
+    // rendering the tileselector
     sprite := io.load(game.assetsManager, "./assets/tileselector.png")
     renderer.add_command(game.renderer, renderer.Sprite({
         pos= wp,
@@ -139,9 +140,7 @@ player_update :: proc(data: ecs.ScriptData) {
         layer=10000000000
     }))
 
-    if og.is_mouse_pressed(input.MouseButton.LEFT) {
-
-    }
+    // useing item
     if og.is_mouse_pressed(input.MouseButton.RIGHT) {
         i := 0
         for tag, item in pdata.inventory.items {
@@ -150,23 +149,24 @@ player_update :: proc(data: ecs.ScriptData) {
         }
 
     }
+    // Attack
     if og.is_mouse_pressed(input.MouseButton.LEFT) {
-    
-            pos := data.gameObject.transform.pos
-            mpos := input.get_world_mouse_position()
-            direction := linalg.normalize0(mpos-pos) * 300
-            result := og.raycast(pos, direction);
-            
-            pdata.start, pdata.end = pos, pos+direction
+        
+        pos := data.gameObject.transform.pos
+        mpos := input.get_world_mouse_position()
+        direction := linalg.normalize0(mpos-pos) * 300
+        result := og.raycast(pos, direction);
+        
+        pdata.start, pdata.end = pos, pos+direction
 
-            if result.hit {
-                entity := data.world.entites_by_shape[result.shapeId]
-                fmt.println(result)
-                fmt.println(entity)
-            }
+        if result.hit {
+            entity := data.world.entites_by_shape[result.shapeId]
+            fmt.println(result)
+            fmt.println(entity)
+        }
     }
-
     
+    // Handle inventory item selection
     if og.is_key_pressed(input.KeyboardKey.ONE) {
         pdata.selected_tool = 0;
     }
@@ -177,9 +177,9 @@ player_update :: proc(data: ecs.ScriptData) {
         pdata.selected_tool = 2;
     }
 
-    renderer.add_command(data.renderer, renderer.Line({pdata.start, pdata.end, renderer.get_color(0x00ff00ff)}))
-    draw_inventory(data.renderer, &pdata.inventory, pdata.selected_tool)
+//    renderer.add_command(data.renderer, renderer.Line({pdata.start, pdata.end, renderer.get_color(0x00ff00ff)}))
 
+    draw_inventory(data.renderer, &pdata.inventory, pdata.selected_tool)
 }
 
 plant :: proc (data: ecs.ScriptData) {

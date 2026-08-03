@@ -35,9 +35,9 @@ use_item :: proc(inv: ^Inventory, item: ItemTag, data: ecs.ScriptData) {
 
 draw_inventory :: proc(renderer: ^rn.Renderer, inv: ^Inventory, selected_index: int) {
     rn.add_command(renderer, rn.UISprite({
-        pos={100,200+50+25},
+        pos={100,200+50+60},
         offset={0,0},
-        size={75,50*5},
+        size={75,50*6},
         rot=0,
         inverted=false,
         sprite=io.load(game.assetsManager, "./assets/inventory.png"),

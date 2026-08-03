@@ -4,6 +4,7 @@ import rn "../ogamer/renderer"
 import "../ogamer/io"
 import "../ogamer/ecs"
 import "core:fmt"
+import "core:slice"
 
 
 
@@ -29,8 +30,30 @@ get_count :: proc (inv: ^Inventory, item: ItemTag) -> int {
     return inv.count[item]
 }
 
+get_item :: proc (inv: ^Inventory, index: int) ->  (Item, bool) {
+    i := 0
+    for tag in get_items_as_list(inv) {
+        if i == index {
+            return inv.items[tag], inv.count[tag] > 0
+        }
+        i+=1
+    }
+    return Item({}), false
+}
+
 use_item :: proc(inv: ^Inventory, item: ItemTag, data: ecs.ScriptData) {
     if inv.items[item].use != nil do inv.items[item].use(data)
+}
+
+get_items_as_list :: proc (inv: ^Inventory) -> []ItemTag {
+    // len(inv.count)
+    keys := make([dynamic]ItemTag)
+    for key in inv.count {
+        append(&keys, ItemTag(key))
+    }
+    k := keys[:]
+    slice.sort(k)
+    return k
 }
 
 draw_inventory :: proc(renderer: ^rn.Renderer, inv: ^Inventory, selected_index: int) {
@@ -46,7 +69,7 @@ draw_inventory :: proc(renderer: ^rn.Renderer, inv: ^Inventory, selected_index: 
         repeated_y=false
     }))
     i := 0
-    for item, amount in inv.count {
+    for item in get_items_as_list(inv) {
         if i == selected_index {
             rn.add_command(renderer, rn.UISprite({
                 pos={100,50*cast(f32)i+200},
@@ -78,7 +101,7 @@ draw_inventory :: proc(renderer: ^rn.Renderer, inv: ^Inventory, selected_index: 
             {100+10,50*cast(f32)i+200+10},
             24,
             0,
-            fmt.tprintf("%d", amount),
+            fmt.tprintf("%d", inv.count[item]),
             rn.get_color(0xffffffff),
             2
         }))

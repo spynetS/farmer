@@ -121,6 +121,14 @@ player_update :: proc(data: ecs.ScriptData) {
         og.apply_force(data.gameObject.entity, {0,-1}*SPEED)
     }
 
+    // DROPPING SELECTED ITEM
+    if og.is_key_pressed(input.KeyboardKey.Q) {
+        if item, ok := get_item(&pdata.inventory, pdata.selected_tool); ok {
+            remove_item(&pdata.inventory, item.tag)
+            dropped := create_item(game, data.gameObject.transform.pos + {100,0}, item)
+            og.add_component(dropped, ecs.NewSpriteRenderer(sprite=get_item_sprite(item.tag)))
+        }
+    }
 
     
     gs :f32= 100
@@ -142,12 +150,8 @@ player_update :: proc(data: ecs.ScriptData) {
 
     // useing item
     if og.is_mouse_pressed(input.MouseButton.RIGHT) {
-        i := 0
-        for tag, item in pdata.inventory.items {
-            if i == pdata.selected_tool do use_item(&pdata.inventory, tag, data)
-            i+=1
-        }
-
+        if item, ok := get_item(&pdata.inventory, pdata.selected_tool); ok do use_item(&pdata.inventory, item.tag, data)
+        
     }
     // Attack
     if og.is_mouse_pressed(input.MouseButton.LEFT) {
@@ -181,6 +185,12 @@ player_update :: proc(data: ecs.ScriptData) {
     }
     if og.is_key_pressed(input.KeyboardKey.THREE) {
         pdata.selected_tool = 2;
+    }
+    if og.is_key_pressed(input.KeyboardKey.FOUR) {
+        pdata.selected_tool = 3;
+    }
+    if og.is_key_pressed(input.KeyboardKey.FIVE) {
+        pdata.selected_tool = 4;
     }
 
 //    renderer.add_command(data.renderer, renderer.Line({pdata.start, pdata.end, renderer.get_color(0x00ff00ff)}))

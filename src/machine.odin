@@ -5,9 +5,14 @@ import "../ogamer/ecs"
 import "../ogamer/io"
 
 import "core:fmt"
+import "core:slice"
 
+
+RecipeTag  :: distinct string
+MachineTag :: distinct string
 
 Recipe :: struct {
+    tag    : RecipeTag,
     input  : map[ItemTag]int, // whats needed to produce output
     output : map[ItemTag]int, // what the recipe outputs
     time   : f32           // the amount of time it takes
@@ -19,19 +24,41 @@ Slot :: struct {
     working : bool
 }
 
-MachineTag :: distinct string
-
 Machine :: struct {
     inventory    : Inventory,
     tag          : MachineTag,
     recipies     : []Recipe,  // recipes that can be made
-    working_slot : []Slot,    // recipes that are worked on
+    slots        : []Slot,    // recipes that are worked on
+}
+
+machine_add_item :: proc(machine: ^Machine, item: Item) -> bool {
+    cant := true
+    for recipe in machine.recipies {
+        if recipe.input[item.tag] > 0 do cant = false
+    }
+    if cant do return false
+    add_item(&machine.inventory, item)
+    return true
+}
+
+machine_set_slot :: proc(machine: ^Machine, slot: Slot, index: int) -> bool {
+
+    for rec in machine.recipies {
+        if rec.tag != slot.recipe.tag do return false
+    }
+
+
+    machine.slots[index] = slot
+    return true
 }
 
 machine_script :: proc(data:ecs.ScriptData) {
     mdata := cast(^Machine)data.data
-    for &slot in mdata.working_slot {        
+    slots: for &slot in mdata.slots {
+        animator := og.get_component(data.gameObject, ecs.SpriteAnimator) or_continue;
         if slot.working {
+            animator.active_animation = 1
+
             slot.time += data.dt
             // Its done
             if slot.time >= slot.recipe.time {
@@ -44,21 +71,24 @@ machine_script :: proc(data:ecs.ScriptData) {
                 }
                 slot.time = 0
                 slot.working = false
+                animator.active_animation = 0
             }
         }
         else {
-            enough := true
+            not_enough := true
             for tag, amount in slot.recipe.input {
-                if mdata.inventory.count[tag] <= amount {
-                    enough = false
+                if mdata.inventory.count[tag] >= amount {
+                    not_enough = false
                 }
             }
-            if !enough do continue
+
+            if not_enough {
+                continue
+            }
             for tag, amount in slot.recipe.input {
                 remove_item(&mdata.inventory, tag, amount)
             }
-            slot.working = true
-            
+            slot.working = true            
         }
     }
 }

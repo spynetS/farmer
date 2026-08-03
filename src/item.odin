@@ -32,17 +32,10 @@ create_item :: proc (game: ^og.Game, pos: [2]f32, item: Item) -> og.GameObject {
     return item_obj
 }
 // Item factory
-generate_item_from_tag :: proc(tag: ItemTag) -> Item{
+generate_item_from_tag :: proc(tag: ItemTag) -> (Item, bool) #optional_ok {
     switch tag {
     case "wood":
-        return Item({tag=ItemTag(tag), use=proc(data:ecs.ScriptData) {
-            pdata := cast(^PlayerData)data.data
-
-            if get_count(&pdata.inventory, "wood") < 10 do return
-            i := create_item(game, data.gameObject.transform.pos + {0, 200}, generate_item_from_tag("hoe"))
-            og.add_component(i, ecs.NewSpriteRenderer(sprite=io.load(game.assetsManager, "./assets/farm/objects&items/hoe.png")))
-            remove_item(&pdata.inventory, "wood", amount=10)
-        }})
+        return Item({tag=ItemTag(tag), use=nil}), true
     case "hoe":
         return Item({tag=ItemTag(tag), use=proc(data:ecs.ScriptData) {
             gs :f32= 100
@@ -57,8 +50,9 @@ generate_item_from_tag :: proc(tag: ItemTag) -> Item{
             t.transform.pos = wp
             create_field(game, wp);
 
-        }})
-    case "pumpkin":
+        }}), true
+    case "pumpkin": return Item({tag=ItemTag(tag), use=nil}), true
+    case "pumpkin_seed":
         return Item({tag=ItemTag(tag), use=proc(data:ecs.ScriptData) {
             pdata := cast(^PlayerData)data.data
 
@@ -69,7 +63,7 @@ generate_item_from_tag :: proc(tag: ItemTag) -> Item{
                 math.round_f32((wp.y - gs/2) / gs) * gs + gs / 2
             }
 
-            if get_count(&pdata.inventory, "pumpkin") > 0 {
+            if get_count(&pdata.inventory, "pumpkin_seed") > 0 {
                 if plant, ok := create_plant(game,wp); ok {
                     // FIXME memory leaks
                     path := "./assets/farm/objects&items/plants free.png"
@@ -86,19 +80,20 @@ generate_item_from_tag :: proc(tag: ItemTag) -> Item{
                     sprites[4][0] = io.load(game.assetsManager, path, {4,0}, {16,16})
 
                     og.add_component(plant, ecs.NewSpriteAnimator(sprites=sprites))
-                    remove_item(&pdata.inventory, "pumpkin")
+                    remove_item(&pdata.inventory, "pumpkin_seed")
                 }
 
             }
 
-        }})
+        }}), true
     }
-    return Item({tag="unkown", use=nil})
+    return Item({tag="unkown", use=nil}), false
 }
 get_item_sprite :: proc (tag: ItemTag) -> io.Sprite {
     switch tag {
     case "wood": return io.load(game.assetsManager, "./assets/farm/objects&items/items free.png", {0,2}, {16,16})
     case "pumpkin": return io.load(game.assetsManager, "./assets/farm/objects&items/items free.png", {0,0}, {16,16})
+    case "pumpkin_seed": return io.load(game.assetsManager, "./assets/farm/objects&items/items free.png", {0,1}, {16,16})
     case "hoe": return io.load(game.assetsManager, "./assets/farm/objects&items/hoe.png")
     }
     return io.Sprite({})

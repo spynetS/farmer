@@ -31,7 +31,7 @@ create_item :: proc (game: ^og.Game, pos: [2]f32, item: Item) -> og.GameObject {
 
     return item_obj
 }
-
+// Item factory
 generate_item_from_tag :: proc(tag: string) -> Item{
     switch tag {
     case "wood":
@@ -53,7 +53,7 @@ generate_item_from_tag :: proc(tag: string) -> Item{
             }
 
             //og.add_child(data.gameObject, create_tool(game))
-            t := create_tool(game)
+            t := create_tool(game, io.new_tilesheet(game.assetsManager, "./assets/swosh.png", {16,16}))
             t.transform.pos = wp
             create_field(game, wp);
 

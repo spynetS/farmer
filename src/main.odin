@@ -36,8 +36,8 @@ main :: proc() {
 //    start_wood := create_item(game, {-150,0}, generate_item_from_tag("wood"))
     // og.add_component(start_wood, ecs.NewSpriteRenderer(sprite=tilesheet.sprites[2][0]))
 
-    // start_hoe := create_item(game, {-150,-100}, generate_item_from_tag("hoe"))
-    // og.add_component(start_hoe, ecs.NewSpriteRenderer(sprite=io.load(game.assetsManager, "./assets/farm/objects&items/hoe.png")))
+    start_hoe := create_item(game, {-150,-100}, generate_item_from_tag("hoe"))
+    og.add_component(start_hoe, ecs.NewSpriteRenderer(sprite=io.load(game.assetsManager, "./assets/farm/objects&items/hoe.png")))
 
 
 

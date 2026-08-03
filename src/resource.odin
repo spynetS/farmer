@@ -23,6 +23,11 @@ create_resource :: proc (health: f32 = 5) -> ecs.Script {
     data.health = health
     return ecs.NewScript(
         data = data,
+        on_destroy = proc(data: ecs.ScriptData) {
+            if data.data == nil do return
+            rdata := cast(^Resource)data.data
+            free(rdata)
+        },
         update = proc(data: ecs.ScriptData) {
             rdata := cast(^Resource)data.data
             switch rdata.state {

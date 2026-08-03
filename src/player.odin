@@ -159,6 +159,12 @@ player_update :: proc(data: ecs.ScriptData) {
         
         pdata.start, pdata.end = pos, pos+direction
 
+        // swosh animation
+        t := create_tool(game, io.new_tilesheet(game.assetsManager, "./assets/swosh.png", {16,16}))
+        t.transform.local_pos = input.get_mouse_position().x > 1920/2 ? {30,0} : {-30,0}
+        og.add_child(data.gameObject, t)
+
+
         if result.hit {
             entity := data.world.entites_by_shape[result.shapeId]
             fmt.println(result)

@@ -4,6 +4,8 @@ import og "../ogamer/"
 import "../ogamer/io"
 import "../ogamer/ecs"
 
+import "core:fmt"
+
 PlantData :: struct {
     current_age : f32,
     max_age     : f32,
@@ -38,7 +40,15 @@ create_plant :: proc(game: ^og.Game, pos: [2]f32) -> (og.GameObject, bool) {
     og.add_component(plant, ecs.Tag({tag="plant"}))
 
 
-    og.add_component(plant, ecs.NewScriptComponent(ecs.NewScript(data=pdata, update=plant_script)))
+    og.add_component(plant, ecs.NewScriptComponent(ecs.NewScript(data=pdata,
+                                                                 update=plant_script,
+                                                                 on_destroy = proc(data:ecs.ScriptData) {
+                                                                     fmt.println("DESTROYING:", data.gameObject.entity)
+                                                                     if data.data == nil do return
+                                                                     pdata := cast(^PlantData) data.data
+                                                                     free(pdata)
+                                                                 }
+                                                                )))
     og.add_component(plant, ecs.NewDepthSort())
     return plant, true
 }

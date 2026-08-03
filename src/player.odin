@@ -24,7 +24,6 @@ PlayerState :: enum {
 PlayerData :: struct {
     state:PlayerState,
     gameObject: ecs.GameObject,
-    text: ecs.GameObject,
     selected_tool: int,
     start, end : [2]f32,
     inventory: Inventory
@@ -67,15 +66,6 @@ create_player :: proc (game: ^og.Game) {
             }
         },
     )))
-
-
-    text := og.new_gameobject(game.ecs);
-    text.transform.pos = {50,50}
-    og.add_component(text, ecs.NewUiText("TOOL: 1"))
-    pData.text = text
-
-
-
 }
 
 hanlde_animation :: proc(pData: ^PlayerData) {
@@ -190,9 +180,6 @@ player_update :: proc(data: ecs.ScriptData) {
     renderer.add_command(data.renderer, renderer.Line({pdata.start, pdata.end, renderer.get_color(0x00ff00ff)}))
     draw_inventory(data.renderer, &pdata.inventory, pdata.selected_tool)
 
-    // UPDATE TOOL TEXT
-    // uitext := og.get_component(pdata.text, ecs.UIText)
-    // uitext.text = fmt.tprintf("TOOL: %d", pdata.selected_tool)
 }
 
 plant :: proc (data: ecs.ScriptData) {

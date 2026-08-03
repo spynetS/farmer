@@ -12,7 +12,7 @@ Inventory :: struct {
     count: map[ItemTag]int,
     sprites: map[ItemTag]io.Sprite
 }
-ItemTag :: string
+ItemTag :: distinct string
 
 add_item :: proc(inv: ^Inventory, item: Item, amount: int = 1, sprite: io.Sprite = io.Sprite({})) {
     inv.count[item.tag] += amount

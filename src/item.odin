@@ -24,7 +24,7 @@ create_item :: proc (game: ^og.Game, pos: [2]f32, item: Item) -> og.GameObject {
     og.add_component(item_obj, ecs.NewRigidbody(type=ecs.BodyType.dynamicBody, disabled_gravity = true, disabled_rotation = true, linear_damping=8))
     
     og.add_component(item_obj, ecs.NewCollider(trigger=true))
-    og.add_component(item_obj, ecs.NewTag(item.tag))
+    og.add_component(item_obj, ecs.NewTag(string(item.tag)))
     og.add_component(item_obj, ecs.NewScriptComponent(ecs.NewScript(start = proc(data : ecs.ScriptData) {
         og.apply_force(data.gameObject.entity, {30,30}*{cast(f32)rand.int_range(-1,1),cast(f32)rand.int_range(-1,1)})
     })))
@@ -32,10 +32,10 @@ create_item :: proc (game: ^og.Game, pos: [2]f32, item: Item) -> og.GameObject {
     return item_obj
 }
 // Item factory
-generate_item_from_tag :: proc(tag: string) -> Item{
+generate_item_from_tag :: proc(tag: ItemTag) -> Item{
     switch tag {
     case "wood":
-        return Item({tag=tag, use=proc(data:ecs.ScriptData) {
+        return Item({tag=ItemTag(tag), use=proc(data:ecs.ScriptData) {
             pdata := cast(^PlayerData)data.data
 
             if get_count(&pdata.inventory, "wood") < 10 do return
@@ -44,7 +44,7 @@ generate_item_from_tag :: proc(tag: string) -> Item{
             remove_item(&pdata.inventory, "wood", amount=10)
         }})
     case "hoe":
-        return Item({tag=tag, use=proc(data:ecs.ScriptData) {
+        return Item({tag=ItemTag(tag), use=proc(data:ecs.ScriptData) {
             gs :f32= 100
             wp := input.get_world_mouse_position()
             wp = {
@@ -59,7 +59,7 @@ generate_item_from_tag :: proc(tag: string) -> Item{
 
         }})
     case "pumpkin":
-        return Item({tag=tag, use=proc(data:ecs.ScriptData) {
+        return Item({tag=ItemTag(tag), use=proc(data:ecs.ScriptData) {
             pdata := cast(^PlayerData)data.data
 
             gs :f32= 100
@@ -94,4 +94,12 @@ generate_item_from_tag :: proc(tag: string) -> Item{
         }})
     }
     return Item({tag="unkown", use=nil})
+}
+get_item_sprite :: proc (tag: ItemTag) -> io.Sprite {
+    switch tag {
+    case "wood": return io.load(game.assetsManager, "./assets/farm/objects&items/items free.png", {0,2}, {16,16})
+    case "pumpkin": return io.load(game.assetsManager, "./assets/farm/objects&items/items free.png", {0,0}, {16,16})
+    case "hoe": return io.load(game.assetsManager, "./assets/farm/objects&items/hoe.png")
+    }
+    return io.Sprite({})
 }

@@ -61,7 +61,7 @@ create_player :: proc (game: ^og.Game) {
             pdata := cast(^PlayerData)data.data
             if tag, has := og.get_component(other, ecs.Tag); has {
                 sprite_comp, ok := og.get_component(other, ecs.SpriteRenderer)
-                add_item(&pdata.inventory, generate_item_from_tag(tag.tag), sprite=sprite_comp.sprite)
+                add_item(&pdata.inventory, generate_item_from_tag(ItemTag(tag.tag)), sprite=sprite_comp.sprite)
                 ecs.destroy_entity(data.ecs, other.entity)
             }
         },

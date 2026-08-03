@@ -39,8 +39,24 @@ main :: proc() {
     start_hoe := create_item(game, {-150,-100}, generate_item_from_tag("hoe"))
     og.add_component(start_hoe, ecs.NewSpriteRenderer(sprite=io.load(game.assetsManager, "./assets/farm/objects&items/hoe.png")))
 
+    
+    hoe := Recipe({time = 1})
+    hoe.input["wood"] = 3
+    hoe.output["hoe"] = 1
+    
+    slot := Slot({
+        recipe=hoe,
+    })
+    
+    machine := Machine({
+        tag="hoemaker",
+        working_slot = {slot}
+    })
+    machine.inventory.count["wood"] = 7
 
-
+    machine_obj := og.new_gameobject(game.ecs)
+    og.add_component(machine_obj, ecs.NewShapeRenderer())
+    og.add_component(machine_obj, ecs.NewScriptComponent(ecs.NewScript(data=&machine, update=machine_script)))
 
     _map := tiled.load_map(game.assetsManager, "./assets/map.tmj")
     fmt.println("MAP:",_map.tilesets)

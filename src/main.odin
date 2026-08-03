@@ -15,13 +15,12 @@ game: ^og.Game
 create_debug :: proc(game: ^og.Game) {
     fps := og.new_gameobject(game.ecs)
     fps.transform.pos = {1050,50}
-    text := og.add_component(fps, ecs.NewUiText("asd"))
+    text := og.add_component(fps, ecs.NewUIText("asd"))
     og.add_component(fps, ecs.NewScriptComponent(ecs.NewScript(data=text, update = proc (data:ecs.ScriptData) {
         text := cast(^ecs.UIText)data.data
         text.text = fmt.tprintf("%d",cast(int) (1/data.dt))
     })))
 }
-
 
 main :: proc() {
     game = og.init_game(og.RenderSettings({60}));
@@ -40,54 +39,19 @@ main :: proc() {
     // start_hoe := create_item(game, {-150,-100}, generate_item_from_tag("hoe"))
     // og.add_component(start_hoe, ecs.NewSpriteRenderer(sprite=io.load(game.assetsManager, "./assets/farm/objects&items/hoe.png")))
 
+    machine := machine_factory("wood_machine")
+    wood_machine := create_machine_drop(game, machine)
+    og.add_component(wood_machine, ecs.NewSpriteAnimator(sprites=io.new_tilesheet(game.assetsManager, "./assets/wood_machine.png", {32,32}).sprites))
+    wood_machine.transform.size = {200,200}
+
+
+    field := machine_factory("field")
+    field_machine := create_machine_drop(game, field)
+    og.add_component(field_machine, ecs.NewSpriteRenderer(sprite=io.load(game.assetsManager, "./assets/farm/field.png")))
+    field_machine.transform.pos = {-300,0}
+
+
     
-    hoe := Recipe({time = 10})
-    hoe.input["wood"] = 5
-    hoe.output["hoe"] = 1
-
-    seeds := Recipe({time = 5})
-    seeds.input["pumpkin"] = 1
-    seeds.output["pumpkin_seed"] = 1
-    
-
-    slot := Slot({
-        recipe=hoe,
-    })
-    slot2 := Slot({
-        recipe=seeds,
-    })
-    
-    machine := Machine({
-        tag="hoemaker",
-        recipies = {hoe,seeds},
-        slots = {slot,slot2}
-    })
-    machine.inventory.count["wood"] = 0
-    machine.inventory.count["pumpkin"] = 0
-    if !machine_set_slot(&machine, slot, 0) do panic("asd")
-    machine_set_slot(&machine, slot2, 1)
-
-    machine_obj := og.new_gameobject(game.ecs)
-    machine_obj.transform.size = {200,200}
-    og.add_component(machine_obj, ecs.NewRigidbody(type=ecs.BodyType.staticBody))
-    og.add_component(machine_obj, ecs.NewDepthSort())
-    
-    og.add_component(machine_obj, ecs.NewSpriteRenderer())
-    og.add_component(machine_obj, ecs.NewSpriteAnimator(sprites=io.new_tilesheet(game.assetsManager, "./assets/wood_machine.png", {32,32}).sprites))
-    og.add_component(machine_obj, ecs.NewScriptComponent(ecs.NewScript(
-        data=&machine,
-        update=machine_script,
-        on_trigger_enter = proc(data:ecs.ScriptData, other: ecs.GameObject) {
-            if tag, has := og.get_component(other, ecs.Tag); has {
-                if item, has := generate_item_from_tag(ItemTag(tag.tag)); has {
-                    mdata := cast(^Machine)data.data
-                    if machine_add_item(mdata, item) do ecs.destroy_entity(other.ecs, other.entity)
-
-
-                }
-            }
-        }
-    )))
 
     _map := tiled.load_map(game.assetsManager, "./assets/map.tmj")
     fmt.println("MAP:",_map.tilesets)

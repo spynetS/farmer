@@ -45,7 +45,7 @@ create_player :: proc (game: ^og.Game) {
     og.add_component(player, ecs.NewDepthSort(offset={0,20}))
 
     
-    og.add_component(player, ecs.NewCamera(zoom=0.8))
+    og.add_component(player, ecs.NewCamera(zoom=0.6))
     leng := make([]int,3)
     leng[0] = 2
     leng[1] = 8

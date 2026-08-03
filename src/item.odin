@@ -36,8 +36,12 @@ generate_item_from_tag :: proc(tag: string) -> Item{
     switch tag {
     case "wood":
         return Item({tag=tag, use=proc(data:ecs.ScriptData) {
+            pdata := cast(^PlayerData)data.data
+
+            if get_count(&pdata.inventory, "wood") < 10 do return
             i := create_item(game, data.gameObject.transform.pos + {0, 200}, generate_item_from_tag("hoe"))
             og.add_component(i, ecs.NewSpriteRenderer(sprite=io.load(game.assetsManager, "./assets/farm/objects&items/hoe.png")))
+            remove_item(&pdata.inventory, "wood", amount=10)
         }})
     case "hoe":
         return Item({tag=tag, use=proc(data:ecs.ScriptData) {

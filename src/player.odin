@@ -188,7 +188,7 @@ player_update :: proc(data: ecs.ScriptData) {
     }
 
     renderer.add_command(data.renderer, renderer.Line({pdata.start, pdata.end, renderer.get_color(0x00ff00ff)}))
-    draw_inventory(data.renderer, &pdata.inventory)
+    draw_inventory(data.renderer, &pdata.inventory, pdata.selected_tool)
 
     // UPDATE TOOL TEXT
     // uitext := og.get_component(pdata.text, ecs.UIText)

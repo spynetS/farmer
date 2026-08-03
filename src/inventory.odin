@@ -33,9 +33,23 @@ use_item :: proc(inv: ^Inventory, item: ItemTag, data: ecs.ScriptData) {
     if inv.items[item].use != nil do inv.items[item].use(data)
 }
 
-draw_inventory :: proc(renderer: ^rn.Renderer, inv: ^Inventory) {
+draw_inventory :: proc(renderer: ^rn.Renderer, inv: ^Inventory, selected_index: int) {
     i := 0
     for item, amount in inv.count {
+        if i == selected_index {
+            rn.add_command(renderer, rn.UISprite({
+                pos={100-50,50*cast(f32)i+200+25},
+                offset={0,0},
+                size={50,50},
+                rot=0,
+                inverted=false,
+                sprite=io.load(game.assetsManager, "./assets/tileselector.png"),
+                layer=10,
+                repeated_x=false,
+                repeated_y=false
+            }))
+
+        }
         rn.add_command(renderer, rn.UIText({
             {100,50*cast(f32)i+200},
             36,

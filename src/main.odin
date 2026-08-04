@@ -30,26 +30,31 @@ main :: proc() {
     create_player(game)
 
     tilesheet := io.new_tilesheet(game.assetsManager, "./assets/farm/objects&items/items free.png", {16,16})
-    start_pump := create_item(game, {-150,100}, generate_item_from_tag("pumpkin"))
-    og.add_component(start_pump, ecs.NewSpriteRenderer(sprite=tilesheet.sprites[0][0]))
+    start_pump := create_item(game, {-150,100}, generate_item_from_tag("pumpkin_seed"))
+    og.add_component(start_pump, ecs.NewSpriteRenderer(sprite=tilesheet.sprites[1][0]))
+    start_pump2 := create_item(game, {-150,100}, generate_item_from_tag("pumpkin_seed"))
+    og.add_component(start_pump2, ecs.NewSpriteRenderer(sprite=tilesheet.sprites[1][0]))
+
 
 //    start_wood := create_item(game, {-150,0}, generate_item_from_tag("wood"))
     // og.add_component(start_wood, ecs.NewSpriteRenderer(sprite=tilesheet.sprites[2][0]))
 
-    // start_hoe := create_item(game, {-150,-100}, generate_item_from_tag("hoe"))
-    // og.add_component(start_hoe, ecs.NewSpriteRenderer(sprite=io.load(game.assetsManager, "./assets/farm/objects&items/hoe.png")))
+    start_hoe := create_item(game, {-150,-100}, generate_item_from_tag("hoe"))
+    og.add_component(start_hoe, ecs.NewSpriteRenderer(sprite=io.load(game.assetsManager, "./assets/farm/objects&items/hoe.png")))
 
     machine := machine_factory("wood_machine")
+    machine.on_slot_working = proc (machine: ^Machine, slot: ^Slot, gameobject: og.GameObject) {
+        anim, has_anim := og.get_component(gameobject, ecs.SpriteAnimator)
+        anim.active_animation = 1
+    }
+    machine.on_slot_done = proc (machine: ^Machine, slot: ^Slot, gameobject: og.GameObject) {
+        machine_drop_items(machine, slot^, gameobject.transform.pos)
+    }
     wood_machine := create_machine_drop(game, machine)
+
+
     og.add_component(wood_machine, ecs.NewSpriteAnimator(sprites=io.new_tilesheet(game.assetsManager, "./assets/wood_machine.png", {32,32}).sprites))
     wood_machine.transform.size = {200,200}
-
-
-    field := machine_factory("field")
-    field_machine := create_machine_drop(game, field)
-    og.add_component(field_machine, ecs.NewSpriteRenderer(sprite=io.load(game.assetsManager, "./assets/farm/field.png")))
-    field_machine.transform.pos = {-300,0}
-
 
     
 

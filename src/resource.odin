@@ -19,7 +19,7 @@ Resource :: struct {
 
 create_resource :: proc (health: f32 = 5) -> ecs.Script {
 
-    data := new(Resource) // memory leak
+    data := new(Resource)
     data.health = health
     return ecs.NewScript(
         data = data,
@@ -45,7 +45,7 @@ create_resource :: proc (health: f32 = 5) -> ecs.Script {
                 if rdata.damage_timer <= 0 {
                     if rdata.health <= 0 {
                         for i in 0..<rand.int_range(2,6) {
-
+                            // TODO make this dynamic
                             item := create_item(game, data.gameObject.transform.pos, Item({tag="wood", use=nil}));
                             tilesheet := io.new_tilesheet(game.assetsManager, "./assets/farm/objects&items/items free.png", {16,16})
                             og.add_component(item, ecs.NewSpriteRenderer(sprite=tilesheet.sprites[2][0]))

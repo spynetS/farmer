@@ -11,14 +11,17 @@ import "core:slice"
 Inventory :: struct {
     items: map[ItemTag]Item,
     count: map[ItemTag]int,
-    sprites: map[ItemTag]io.Sprite
+    sprites: map[ItemTag]io.Sprite,
+    filter: [dynamic]ItemTag
 }
 ItemTag :: distinct string
 
-add_item :: proc(inv: ^Inventory, item: Item, amount: int = 1, sprite: io.Sprite = io.Sprite({})) {
+add_item :: proc(inv: ^Inventory, item: Item, amount: int = 1, sprite: io.Sprite = io.Sprite({})) -> bool {
+    if !slice.contains(inv.filter[:], item.tag) do return false
     inv.count[item.tag] += amount
     inv.items[item.tag] = item
     if sprite.texture != "" do inv.sprites[item.tag] = sprite
+    return true
 }
 
 remove_item :: proc(inv: ^Inventory, item: ItemTag, amount: int = 1) {

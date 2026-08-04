@@ -6,11 +6,6 @@ import "../ogamer/ecs"
 
 import "core:fmt"
 
-PlantData :: struct {
-    current_age : f32,
-    max_age     : f32,
-    sprite_comp : ^ecs.SpriteRenderer,
-}
 
 create_plant :: proc(game: ^og.Game, pos: [2]f32) -> (og.GameObject, bool) {
 
@@ -24,57 +19,44 @@ create_plant :: proc(game: ^og.Game, pos: [2]f32) -> (og.GameObject, bool) {
     plants := ecs.get_gameobjects_tag(game.ecs, "plant")
     found = false
     for plant in plants {
-        if plant.transform.pos == pos do found =true
+        if plant.transform.pos == pos {
+            found = true
+        }
     }
     if found do return og.GameObject({}), false
 
 
     plant := og.new_gameobject(game.ecs)
     plant.transform.pos = pos
-
     tilesheet := io.new_tilesheet(game.assetsManager, "./assets/farm/objects&items/plants free.png", {16,16})
-
-    pdata := new(PlantData)
-    pdata.current_age = 0
-    pdata.max_age = 4
-    og.add_component(plant, ecs.Tag({tag="plant"}))
+    og.add_component(plant, ecs.NewRigidbody(type=ecs.BodyType.kinematicBody, disabled_gravity=true, disabled_rotation=true))
+    og.add_component(plant, ecs.NewCollider(trigger=true))
 
 
-    og.add_component(plant, ecs.NewScriptComponent(ecs.NewScript(data=pdata,
-                                                                 update=plant_script,
-                                                                 on_destroy = proc(data:ecs.ScriptData) {
-                                                                     fmt.println("DESTROYING:", data.gameObject.entity)
-                                                                     if data.data == nil do return
-                                                                     pdata := cast(^PlantData) data.data
-                                                                     free(pdata)
-                                                                 }
-                                                                )))
+    og.add_component(plant, ecs.NewSpriteRenderer())
+    og.add_component(plant, ecs.NewSpriteAnimator(sprites=tilesheet.sprites, manual = true))
+    plant_machine := machine_factory("plant")
+    // TODO make so we have multiple plants
+    plant_machine.on_slot_working = proc (machine: ^Machine, slot: ^Slot, gameobject: og.GameObject) {
+        anim, has_anim := og.get_component(gameobject, ecs.SpriteAnimator)
+        anim.active_animation = 0
+        anim.active_index = int(slot.time / slot.recipe.time * 4)
+        fmt.println(slot.time)
+    }
+
+    og.add_component(plant, ecs.NewScriptComponent(ecs.NewScript(
+        data = plant_machine,
+        update = machine_script,
+        on_raycast_hit = proc(data: ecs.ScriptData) {
+            machine := cast(^Machine)data.data
+            if machine.slots[0].working == true do return
+            machine_drop_items(machine, machine.slots[0], data.gameObject.transform.pos)
+            ecs.destroy_entity(data.gameObject.ecs, data.gameObject.entity)
+
+        }
+    )))
+
+    
     og.add_component(plant, ecs.NewDepthSort())
     return plant, true
-}
-
-kill_plant :: proc (data: ecs.ScriptData) {
-    tilesheet := io.new_tilesheet(game.assetsManager, "./assets/farm/objects&items/items free.png", {16,16})
-    item1 := create_item(game, data.gameObject.transform.pos+{10,0}, Item({tag="pumpkin", use=nil}))
-    item2 := create_item(game, data.gameObject.transform.pos-{10,0}, Item({tag="pumpkin", use=nil}))
-    og.add_component(item1, ecs.NewSpriteRenderer(sprite=tilesheet.sprites[0][0]))
-    og.add_component(item2, ecs.NewSpriteRenderer(sprite=tilesheet.sprites[0][0]))
-
-    ecs.destroy_entity(data.gameObject.ecs, data.gameObject.entity)
-}
-
-plant_script :: proc (data: ecs.ScriptData) {
-    pdata := cast(^PlantData)data.data
-    pdata.current_age += data.dt
-    if pdata.current_age < pdata.max_age {
-        pdata.current_age += data.dt
-    }
-    else {
-        kill_plant(data)
-    }
-    if animator,has := og.get_component(data.gameObject, ecs.SpriteAnimator); has {
-        animations := f32(len(animator.sprites))
-        animator.active_animation = cast(int) (pdata.current_age/pdata.max_age * animations)        
-    }
-
 }

@@ -33,6 +33,12 @@ PlayerData :: struct {
 create_player :: proc (game: ^og.Game) {
     pData := new(PlayerData)
 
+    append(&pData.inventory.filter,
+           ItemTag("wood"),
+           ItemTag("pumpkin"),
+           ItemTag("pumpkin_seed"),
+           ItemTag("hoe"),
+          )
 
     player := og.new_gameobject(game.ecs);
     player.transform.size = {150,150}
@@ -45,7 +51,7 @@ create_player :: proc (game: ^og.Game) {
     og.add_component(player, ecs.NewDepthSort(offset={0,20}))
 
     
-    og.add_component(player, ecs.NewCamera(zoom=0.6))
+    og.add_component(player, ecs.NewCamera(zoom=0.8))
     leng := make([]int,3)
     leng[0] = 2
     leng[1] = 8
@@ -61,8 +67,9 @@ create_player :: proc (game: ^og.Game) {
             pdata := cast(^PlayerData)data.data
             if tag, has := og.get_component(other, ecs.Tag); has {
                 sprite_comp, ok := og.get_component(other, ecs.SpriteRenderer)
-                add_item(&pdata.inventory, generate_item_from_tag(ItemTag(tag.tag)), sprite=sprite_comp.sprite)
-                ecs.destroy_entity(data.ecs, other.entity)
+                if add_item(&pdata.inventory, generate_item_from_tag(ItemTag(tag.tag)), sprite=sprite_comp.sprite) {
+                    ecs.destroy_entity(data.ecs, other.entity)
+                }
             }
         },
     )))

@@ -65,21 +65,6 @@ generate_item_from_tag :: proc(tag: ItemTag) -> (Item, bool) #optional_ok {
 
             if get_count(&pdata.inventory, "pumpkin_seed") > 0 {
                 if plant, ok := create_plant(game,wp); ok {
-                    // FIXME memory leaks
-                    path := "./assets/farm/objects&items/plants free.png"
-                    sprites : [][]io.Sprite = make([][]io.Sprite,5)
-                    sprites[0] = make([]io.Sprite,1)
-                    sprites[0][0] = io.load(game.assetsManager, path, {0,0}, {16,16})
-                    sprites[1] = make([]io.Sprite,1)
-                    sprites[1][0] = io.load(game.assetsManager, path, {1,0}, {16,16})
-                    sprites[2] = make([]io.Sprite,1)
-                    sprites[2][0] = io.load(game.assetsManager, path, {2,0}, {16,16})
-                    sprites[3] = make([]io.Sprite,1)
-                    sprites[3][0] = io.load(game.assetsManager, path, {3,0}, {16,16})
-                    sprites[4] = make([]io.Sprite,1)
-                    sprites[4][0] = io.load(game.assetsManager, path, {4,0}, {16,16})
-
-                    og.add_component(plant, ecs.NewSpriteAnimator(sprites=sprites))
                     remove_item(&pdata.inventory, "pumpkin_seed")
                 }
 

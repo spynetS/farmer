@@ -46,7 +46,7 @@ create_resource :: proc (health: f32 = 5) -> ecs.Script {
                     if rdata.health <= 0 {
                         for i in 0..<rand.int_range(2,6) {
                             // TODO make this dynamic
-                            item := create_item(game, data.gameObject.transform.pos, Item({tag="wood", use=nil}));
+                            item := create_item(game, data.gameObject.transform.pos, Item({tag=.WOOD, use=nil}));
                             tilesheet := io.new_tilesheet(game.assetsManager, "./assets/farm/objects&items/items free.png", {16,16})
                             og.add_component(item, ecs.NewSpriteRenderer(sprite=tilesheet.sprites[2][0]))
                         }

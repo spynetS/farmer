@@ -34,10 +34,12 @@ create_player :: proc (game: ^og.Game) {
     pData := new(PlayerData)
 
     append(&pData.inventory.filter,
-           ItemTag("wood"),
-           ItemTag("pumpkin"),
-           ItemTag("pumpkin_seed"),
-           ItemTag("hoe"),
+           ItemTag(.WOOD),
+           ItemTag(.PUMPKIN),
+           ItemTag(.PUMPKIN_SEED),
+           ItemTag(.CARROT),
+           ItemTag(.CARROT_SEED),
+           ItemTag(.HOE),
           )
 
     player := og.new_gameobject(game.ecs);
@@ -67,8 +69,10 @@ create_player :: proc (game: ^og.Game) {
             pdata := cast(^PlayerData)data.data
             if tag, has := og.get_component(other, ecs.Tag); has {
                 sprite_comp, ok := og.get_component(other, ecs.SpriteRenderer)
-                if add_item(&pdata.inventory, generate_item_from_tag(ItemTag(tag.tag)), sprite=sprite_comp.sprite) {
-                    ecs.destroy_entity(data.ecs, other.entity)
+                if item_tag, ok := string_to_itemtag(tag.tag); ok {
+                    if add_item(&pdata.inventory, generate_item_from_tag(item_tag), sprite=sprite_comp.sprite) {
+                        ecs.destroy_entity(data.ecs, other.entity)
+                    }
                 }
             }
         },

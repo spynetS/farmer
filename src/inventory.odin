@@ -14,7 +14,38 @@ Inventory :: struct {
     sprites: map[ItemTag]io.Sprite,
     filter: [dynamic]ItemTag
 }
-ItemTag :: distinct string
+ItemTag :: enum {
+    WOOD,
+    PUMPKIN,
+    PUMPKIN_SEED,
+    CARROT,
+    CARROT_SEED,
+    HOE
+}
+
+item_tag_to_string :: proc (tag: ItemTag) -> string {
+    switch tag {
+    case .WOOD: return "WOOD"
+    case .PUMPKIN: return "PUMPKIN"
+    case .PUMPKIN_SEED: return "PUMPKIN_SEED"
+    case .CARROT: return "CARROT"
+    case .CARROT_SEED: return "CARROT_SEED"
+    case .HOE: return "HOE"
+    }
+    return ""
+}
+
+string_to_itemtag :: proc (str: string) -> (ItemTag, bool) {
+    switch str {
+    case "WOOD"         : return .WOOD, true
+    case "PUMPKIN"      : return .PUMPKIN, true
+    case "PUMPKIN_SEED" : return .PUMPKIN_SEED, true
+    case "CARROT"      : return .CARROT, true
+    case "CARROT_SEED" : return .CARROT_SEED, true
+    case "HOE"          : return .HOE, true
+    }
+    return .WOOD, false
+}
 
 add_item :: proc(inv: ^Inventory, item: Item, amount: int = 1, sprite: io.Sprite = io.Sprite({})) -> bool {
     if !slice.contains(inv.filter[:], item.tag) do return false
@@ -35,24 +66,27 @@ get_count :: proc (inv: ^Inventory, item: ItemTag) -> int {
 
 get_item :: proc (inv: ^Inventory, index: int) ->  (Item, bool) {
     i := 0
-    for tag in get_items_as_list(inv) {
+    items := get_items_as_list(inv)
+    for tag in  items{
         if i == index {
+            delete(items)
             return inv.items[tag], inv.count[tag] > 0
         }
         i+=1
     }
+    delete(items)
     return Item({}), false
 }
 
 use_item :: proc(inv: ^Inventory, item: ItemTag, data: ecs.ScriptData) {
-    if inv.items[item].use != nil do inv.items[item].use(data)
+    if inv.items[item].use != nil do inv.items[item].use(&inv.items[item], data)
 }
 
 get_items_as_list :: proc (inv: ^Inventory) -> []ItemTag {
     // len(inv.count)
     keys := make([dynamic]ItemTag)
     for key in inv.count {
-        append(&keys, ItemTag(key))
+        append(&keys, key)
     }
     k := keys[:]
     slice.sort(k)
@@ -72,7 +106,13 @@ draw_inventory :: proc(renderer: ^rn.Renderer, inv: ^Inventory, selected_index: 
         repeated_y=false
     }))
     i := 0
-    for item in get_items_as_list(inv) {
+    items := get_items_as_list(inv)
+    defer delete(items)
+    for item in items{
+        if inv.count[item] == 0 {
+            i += 1
+            continue
+        }
         if i == selected_index {
             rn.add_command(renderer, rn.UISprite({
                 pos={100,50*cast(f32)i+200},

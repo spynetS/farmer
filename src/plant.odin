@@ -7,7 +7,7 @@ import "../ogamer/ecs"
 import "core:fmt"
 
 
-create_plant :: proc(game: ^og.Game, pos: [2]f32) -> (og.GameObject, bool) {
+create_plant :: proc(game: ^og.Game, pos: [2]f32, item: ItemTag) -> (og.GameObject, bool) {
 
     fields := ecs.get_gameobjects_tag(game.ecs, "field")
     found := false
@@ -16,7 +16,7 @@ create_plant :: proc(game: ^og.Game, pos: [2]f32) -> (og.GameObject, bool) {
     }
     if !found do return og.GameObject({}), false
     
-    plants := ecs.get_gameobjects_tag(game.ecs, "plant")
+    plants := ecs.get_gameobjects_tag(game.ecs, item_tag_to_string(item))
     found = false
     for plant in plants {
         if plant.transform.pos == pos {
@@ -33,13 +33,18 @@ create_plant :: proc(game: ^og.Game, pos: [2]f32) -> (og.GameObject, bool) {
     og.add_component(plant, ecs.NewCollider(trigger=true))
 
 
+//    og.add_component(plant, ecs.NewTag(item_tag_to_string(item)))
     og.add_component(plant, ecs.NewSpriteRenderer())
     og.add_component(plant, ecs.NewSpriteAnimator(sprites=tilesheet.sprites, manual = true))
-    plant_machine := machine_factory("plant")
+    plant_machine := machine_factory(item)
     // TODO make so we have multiple plants
     plant_machine.on_slot_working = proc (machine: ^Machine, slot: ^Slot, gameobject: og.GameObject) {
         anim, has_anim := og.get_component(gameobject, ecs.SpriteAnimator)
-        anim.active_animation = 0
+        #partial switch machine.tag {
+        case .PUMPKIN_SEED: anim.active_animation = 0
+        case .CARROT_SEED: anim.active_animation = 1
+        }
+
         anim.active_index = int(slot.time / slot.recipe.time * 4)
         fmt.println(slot.time)
     }
@@ -55,7 +60,6 @@ create_plant :: proc(game: ^og.Game, pos: [2]f32) -> (og.GameObject, bool) {
 
         }
     )))
-
     
     og.add_component(plant, ecs.NewDepthSort())
     return plant, true

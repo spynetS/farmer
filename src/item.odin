@@ -12,7 +12,7 @@ import "core:math"
 
 Item :: struct {
     tag : ItemTag,
-    use : proc (data: ecs.ScriptData)
+    use : proc (item: ^Item, data: ecs.ScriptData)
 }
 
 
@@ -24,7 +24,7 @@ create_item :: proc (game: ^og.Game, pos: [2]f32, item: Item) -> og.GameObject {
     og.add_component(item_obj, ecs.NewRigidbody(type=ecs.BodyType.dynamicBody, disabled_gravity = true, disabled_rotation = true, linear_damping=8))
     
     og.add_component(item_obj, ecs.NewCollider(trigger=true))
-    og.add_component(item_obj, ecs.NewTag(string(item.tag)))
+    og.add_component(item_obj, ecs.NewTag(item_tag_to_string(item.tag)))
     og.add_component(item_obj, ecs.NewScriptComponent(ecs.NewScript(start = proc(data : ecs.ScriptData) {
         og.apply_force(data.gameObject.entity, {30,30}*{cast(f32)rand.int_range(-1,1),cast(f32)rand.int_range(-1,1)})
     })))
@@ -34,10 +34,10 @@ create_item :: proc (game: ^og.Game, pos: [2]f32, item: Item) -> og.GameObject {
 // Item factory
 generate_item_from_tag :: proc(tag: ItemTag) -> (Item, bool) #optional_ok {
     switch tag {
-    case "wood":
+    case .WOOD:
         return Item({tag=ItemTag(tag), use=nil}), true
-    case "hoe":
-        return Item({tag=ItemTag(tag), use=proc(data:ecs.ScriptData) {
+    case .HOE:
+        return Item({tag=ItemTag(tag), use=proc(item: ^Item, data:ecs.ScriptData) {
             gs :f32= 100
             wp := input.get_world_mouse_position()
             wp = {
@@ -51,9 +51,9 @@ generate_item_from_tag :: proc(tag: ItemTag) -> (Item, bool) #optional_ok {
             create_field(game, wp);
 
         }}), true
-    case "pumpkin": return Item({tag=ItemTag(tag), use=nil}), true
-    case "pumpkin_seed":
-        return Item({tag=ItemTag(tag), use=proc(data:ecs.ScriptData) {
+    case .PUMPKIN, .CARROT: return Item({tag=ItemTag(tag), use=nil}), true
+    case .PUMPKIN_SEED, .CARROT_SEED:
+        return Item({tag=tag, use=proc(item: ^Item, data:ecs.ScriptData) {
             pdata := cast(^PlayerData)data.data
 
             gs :f32= 100
@@ -63,23 +63,23 @@ generate_item_from_tag :: proc(tag: ItemTag) -> (Item, bool) #optional_ok {
                 math.round_f32((wp.y - gs/2) / gs) * gs + gs / 2
             }
 
-            if get_count(&pdata.inventory, "pumpkin_seed") > 0 {
-                if plant, ok := create_plant(game,wp); ok {
-                    remove_item(&pdata.inventory, "pumpkin_seed")
-                }
-
+            if get_count(&pdata.inventory, item.tag) > 0 {
+                 if plant, ok := create_plant(game,wp, item.tag); ok {
+                     remove_item(&pdata.inventory, item.tag)
+                 }
             }
-
         }}), true
     }
-    return Item({tag="unkown", use=nil}), false
+    return Item({use=nil}), false
 }
 get_item_sprite :: proc (tag: ItemTag) -> io.Sprite {
     switch tag {
-    case "wood": return io.load(game.assetsManager, "./assets/farm/objects&items/items free.png", {0,2}, {16,16})
-    case "pumpkin": return io.load(game.assetsManager, "./assets/farm/objects&items/items free.png", {0,0}, {16,16})
-    case "pumpkin_seed": return io.load(game.assetsManager, "./assets/farm/objects&items/items free.png", {0,1}, {16,16})
-    case "hoe": return io.load(game.assetsManager, "./assets/farm/objects&items/hoe.png")
+    case .WOOD: return io.load(game.assetsManager, "./assets/farm/objects&items/items free.png", {0,2}, {16,16})
+    case .PUMPKIN: return io.load(game.assetsManager, "./assets/farm/objects&items/items free.png", {0,0}, {16,16})
+    case .PUMPKIN_SEED: return io.load(game.assetsManager, "./assets/farm/objects&items/items free.png", {0,1}, {16,16})
+    case .CARROT: return io.load(game.assetsManager, "./assets/farm/objects&items/items free.png", {2,0}, {16,16})
+    case .CARROT_SEED: return io.load(game.assetsManager, "./assets/farm/objects&items/items free.png", {2,1}, {16,16})
+    case .HOE: return io.load(game.assetsManager, "./assets/farm/objects&items/hoe.png")
     }
     return io.Sprite({})
 }

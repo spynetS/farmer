@@ -8,8 +8,8 @@ import "core:fmt"
 import "core:slice"
 
 
-RecipeTag  :: distinct string
-MachineTag :: distinct string
+RecipeTag  :: ItemTag
+MachineTag :: ItemTag
 
 Recipe :: struct {
     tag    : RecipeTag,
@@ -56,10 +56,12 @@ create_machine_drop :: proc (game: ^og.Game, machine: ^Machine) -> og.GameObject
         update=machine_script,
         on_trigger_enter = proc(data:ecs.ScriptData, other: ecs.GameObject) {
             if tag, has := og.get_component(other, ecs.Tag); has {
-                if item, has := generate_item_from_tag(ItemTag(tag.tag)); has {
-                    mdata := cast(^Machine)data.data
-                    if machine_add_item(mdata, item) do ecs.destroy_entity(other.ecs, other.entity)
-                    
+                if tag, ok := string_to_itemtag(tag.tag); ok {
+                    if item, has := generate_item_from_tag(tag); has {
+                        mdata := cast(^Machine)data.data
+                        if machine_add_item(mdata, item) do ecs.destroy_entity(other.ecs, other.entity)
+                        
+                    }
                 }
             }
         }
@@ -113,15 +115,18 @@ machine_script :: proc(data:ecs.ScriptData) {
 }
 // have to free the machine memory
 machine_factory :: proc (tag: MachineTag) -> ^Machine {
-    switch tag {
-    case "wood_machine":
+    #partial switch tag {
+    case .WOOD:
         hoe := Recipe({time = 10})
-        hoe.input["wood"] = 5
-        hoe.output["hoe"] = 1
+        hoe.input[.WOOD] = 5
+        hoe.output[.HOE] = 1
 
-        seeds := Recipe({time = 5})
-        seeds.input["pumpkin"] = 1
-        seeds.output["pumpkin_seed"] = 1
+        seeds := Recipe({time = 1})
+        seeds.input[.PUMPKIN] = 1
+        seeds.output[.PUMPKIN_SEED] = 1
+        seeds.input[.CARROT] = 1
+        seeds.output[.CARROT_SEED] = 1
+
                 
         slot := Slot({
             recipe=hoe,
@@ -131,53 +136,56 @@ machine_factory :: proc (tag: MachineTag) -> ^Machine {
         })
         
         machine := new(Machine)
-        machine.tag = "wood_machine"
         append(&machine.inventory.filter,
-               ItemTag("pumpkin"),
-               ItemTag("wood")
+               ItemTag(.PUMPKIN),
+               ItemTag(.CARROT),
+               ItemTag(.WOOD)
               )
 
         machine_set_slot(machine, slot, 0)
         machine_set_slot(machine, slot2, 1)
         return machine
-    case "field":
-        pumpkin := Recipe({time = 10})
-        pumpkin.input["pumpkin_seed"] = 1
-        pumpkin.output["pumpkin"] = 2
-        
-        slot := Slot({
-            recipe=pumpkin,
-        })
-        
-        machine := new(Machine)
-        machine.tag = "field"
-        machine_set_slot(machine, slot, 0)
-        append(&machine.inventory.filter,
-               ItemTag("pumpkin_seed"),
-              )
-
-
-        return machine
-    case "plant":
+    case .PUMPKIN_SEED:
         pumpkin := Recipe({time = 5})
-        pumpkin.input["pumpkin_seed"] = 1
-        pumpkin.output["pumpkin"] = 2
+        pumpkin.input [.PUMPKIN_SEED] = 1
+        pumpkin.output[.PUMPKIN] = 2
         
         slot := Slot({
             recipe=pumpkin,
         })
         
         machine := new(Machine)
-        machine.tag = "plant"
+        machine.tag = .PUMPKIN_SEED
 
         machine_set_slot(machine, slot, 0)
         append(&machine.inventory.filter,
-               ItemTag("pumpkin_seed"),
+               ItemTag(.PUMPKIN_SEED),
               )
-        add_item(&machine.inventory, generate_item_from_tag("pumpkin_seed"))
+        add_item(&machine.inventory, generate_item_from_tag(.PUMPKIN_SEED))
 
 
         return machine
+        case .CARROT_SEED:
+        pumpkin := Recipe({time = 5})
+        pumpkin.input [.CARROT_SEED] = 1
+        pumpkin.output[.CARROT] = 2
+        
+        slot := Slot({
+            recipe=pumpkin,
+        })
+        
+        machine := new(Machine)
+        machine.tag = .CARROT_SEED
+
+        machine_set_slot(machine, slot, 0)
+        append(&machine.inventory.filter,
+               ItemTag(.CARROT_SEED),
+              )
+        add_item(&machine.inventory, generate_item_from_tag(.CARROT_SEED))
+
+
+        return machine
+
     }
     return nil
 }

@@ -30,19 +30,20 @@ main :: proc() {
     create_player(game)
 
     tilesheet := io.new_tilesheet(game.assetsManager, "./assets/farm/objects&items/items free.png", {16,16})
-    start_pump := create_item(game, {-150,100}, generate_item_from_tag("pumpkin_seed"))
+    start_pump := create_item(game, {-150,100}, generate_item_from_tag(.PUMPKIN_SEED))
     og.add_component(start_pump, ecs.NewSpriteRenderer(sprite=tilesheet.sprites[1][0]))
-    start_pump2 := create_item(game, {-150,100}, generate_item_from_tag("pumpkin_seed"))
-    og.add_component(start_pump2, ecs.NewSpriteRenderer(sprite=tilesheet.sprites[1][0]))
+
+    start_pump2 := create_item(game, {-150,100}, generate_item_from_tag(.CARROT_SEED))
+    og.add_component(start_pump2, ecs.NewSpriteRenderer(sprite=tilesheet.sprites[1][1]))
 
 
 //    start_wood := create_item(game, {-150,0}, generate_item_from_tag("wood"))
     // og.add_component(start_wood, ecs.NewSpriteRenderer(sprite=tilesheet.sprites[2][0]))
 
-    start_hoe := create_item(game, {-150,-100}, generate_item_from_tag("hoe"))
+    start_hoe := create_item(game, {-150,-100}, generate_item_from_tag(.HOE))
     og.add_component(start_hoe, ecs.NewSpriteRenderer(sprite=io.load(game.assetsManager, "./assets/farm/objects&items/hoe.png")))
 
-    machine := machine_factory("wood_machine")
+    machine := machine_factory(.WOOD)
     machine.on_slot_working = proc (machine: ^Machine, slot: ^Slot, gameobject: og.GameObject) {
         anim, has_anim := og.get_component(gameobject, ecs.SpriteAnimator)
         anim.active_animation = 1

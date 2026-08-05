@@ -29,6 +29,9 @@ PlayerData :: struct {
     inventory: Inventory
 }
 
+lerp :: proc (a, b: og.Vector2, t:f32) -> og.Vector2 {
+    return a + (b - a) * t
+}
 
 create_player :: proc (game: ^og.Game) {
     pData := new(PlayerData)
@@ -53,7 +56,14 @@ create_player :: proc (game: ^og.Game) {
     og.add_component(player, ecs.NewDepthSort(offset={0,20}))
 
     
-    og.add_component(player, ecs.NewCamera(zoom=0.8))
+    camera := og.new_gameobject(game.ecs)
+    og.add_component(camera, ecs.NewCamera(zoom=0.8))
+    og.add_component(camera, ecs.NewScriptComponent(ecs.NewScript(data=pData, update = proc (data: ecs.ScriptData) {
+        pdata := cast(^PlayerData)data.data
+        pt := og.get_component(pdata.gameObject, ecs.Transform)
+        data.gameObject.transform.pos = lerp(data.gameObject.transform.pos, pt.pos, 0.07)
+    })))
+
     leng := make([]int,3)
     leng[0] = 2
     leng[1] = 8

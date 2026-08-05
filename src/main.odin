@@ -15,15 +15,23 @@ game: ^og.Game
 create_debug :: proc(game: ^og.Game) {
     fps := og.new_gameobject(game.ecs)
     fps.transform.pos = {1050,50}
-    text := og.add_component(fps, ecs.NewUIText("asd"))
-    og.add_component(fps, ecs.NewScriptComponent(ecs.NewScript(data=text, update = proc (data:ecs.ScriptData) {
-        text := cast(^ecs.UIText)data.data
+    og.add_component(fps, ecs.NewUIText("asd"))
+
+    timer := new(f32)
+    
+    og.add_component(fps, ecs.NewScriptComponent(ecs.NewScript(data=timer, update = proc (data:ecs.ScriptData) {
+        timer := cast(^f32)data.data
+        timer^ += 1
+        if timer^ <= 50 do return
+        timer^ = 0
+
+        text := og.get_component(data.gameObject, ecs.UIText)
         text.text = fmt.tprintf("%d",cast(int) (1/data.dt))
     })))
 }
 
 main :: proc() {
-    game = og.init_game(og.RenderSettings({60}));
+    game = og.init_game(og.RenderSettings({600}));
     og.current_game = game;
     
     create_debug(game)
@@ -50,6 +58,8 @@ main :: proc() {
     }
     machine.on_slot_done = proc (machine: ^Machine, slot: ^Slot, gameobject: og.GameObject) {
         machine_drop_items(machine, slot^, gameobject.transform.pos)
+        anim, has_anim := og.get_component(gameobject, ecs.SpriteAnimator)
+        anim.active_animation = 0
     }
     wood_machine := create_machine_drop(game, machine)
 

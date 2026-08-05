@@ -121,19 +121,25 @@ machine_factory :: proc (tag: MachineTag) -> ^Machine {
         hoe.input[.WOOD] = 5
         hoe.output[.HOE] = 1
 
-        seeds := Recipe({time = 1})
-        seeds.input[.PUMPKIN] = 1
-        seeds.output[.PUMPKIN_SEED] = 1
-        seeds.input[.CARROT] = 1
-        seeds.output[.CARROT_SEED] = 1
+        pumpkin := Recipe({time = 1})
+        pumpkin.input[.PUMPKIN] = 1
+        pumpkin.output[.PUMPKIN_SEED] = 1
+
+        carrot := Recipe({time = 1})
+        carrot.input[.CARROT] = 1
+        carrot.output[.CARROT_SEED] = 1
 
                 
         slot := Slot({
             recipe=hoe,
         })
         slot2 := Slot({
-            recipe=seeds,
+            recipe=pumpkin,
         })
+        slot3 := Slot({
+            recipe=carrot,
+        })
+
         
         machine := new(Machine)
         append(&machine.inventory.filter,
@@ -144,6 +150,7 @@ machine_factory :: proc (tag: MachineTag) -> ^Machine {
 
         machine_set_slot(machine, slot, 0)
         machine_set_slot(machine, slot2, 1)
+        machine_set_slot(machine, slot3, 2)
         return machine
     case .PUMPKIN_SEED:
         pumpkin := Recipe({time = 5})

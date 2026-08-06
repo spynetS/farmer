@@ -6,7 +6,13 @@ import "../ogamer/ecs"
 import "core:fmt"
 import "core:slice"
 
-
+// This is used to transfer items between inventories
+TransferRequest :: struct {
+    from      : ^Inventory,
+    to        : ^Inventory,
+    item      : ItemTag,
+    amount    : int,
+}
 
 Inventory :: struct {
     items: map[ItemTag]Item,
@@ -23,14 +29,22 @@ ItemTag :: enum {
     HOE
 }
 
+process_transfers :: proc(requests: []TransferRequest) {
+    for req in requests {
+        // available := inventory_count(req.from, req.item)
+        // moved := min(available, req.amount)
+        if add_item(req.to, generate_item_from_tag(req.item), req.amount, sprite=get_item_sprite(req.item)) do remove_item(req.from, req.item, req.amount)
+    }
+}
+
 item_tag_to_string :: proc (tag: ItemTag) -> string {
     switch tag {
-    case .WOOD: return "WOOD"
-    case .PUMPKIN: return "PUMPKIN"
+    case .WOOD:         return "WOOD"
+    case .PUMPKIN:      return "PUMPKIN"
     case .PUMPKIN_SEED: return "PUMPKIN_SEED"
-    case .CARROT: return "CARROT"
-    case .CARROT_SEED: return "CARROT_SEED"
-    case .HOE: return "HOE"
+    case .CARROT:       return "CARROT"
+    case .CARROT_SEED:  return "CARROT_SEED"
+    case .HOE:          return "HOE"
     }
     return ""
 }

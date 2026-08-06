@@ -9,8 +9,10 @@ import rn "../ogamer/renderer"
 import "core:fmt"
 import b2 "vendor:box2d"
 import "core:slice"
+import "core:math/linalg"
 
 game: ^og.Game
+transfer_requests :[dynamic]TransferRequest
 
 create_debug :: proc(game: ^og.Game) {
     fps := og.new_gameobject(game.ecs)
@@ -31,7 +33,7 @@ create_debug :: proc(game: ^og.Game) {
 }
 
 main :: proc() {
-    game = og.init_game(og.RenderSettings({600}));
+    game = og.init_game(og.RenderSettings({60}));
     og.current_game = game;
     
     create_debug(game)
@@ -44,8 +46,7 @@ main :: proc() {
     start_pump2 := create_item(game, {-150,100}, generate_item_from_tag(.CARROT_SEED))
     og.add_component(start_pump2, ecs.NewSpriteRenderer(sprite=tilesheet.sprites[1][1]))
 
-
-//    start_wood := create_item(game, {-150,0}, generate_item_from_tag("wood"))
+    // start_wood := create_item(game, {-150,0}, generate_item_from_tag("wood"))
     // og.add_component(start_wood, ecs.NewSpriteRenderer(sprite=tilesheet.sprites[2][0]))
 
     start_hoe := create_item(game, {-150,-100}, generate_item_from_tag(.HOE))
@@ -61,13 +62,19 @@ main :: proc() {
         anim, has_anim := og.get_component(gameobject, ecs.SpriteAnimator)
         anim.active_animation = 0
     }
+    
     wood_machine := create_machine_drop(game, machine)
-
-
     og.add_component(wood_machine, ecs.NewSpriteAnimator(sprites=io.new_tilesheet(game.assetsManager, "./assets/wood_machine.png", {32,32}).sprites))
     wood_machine.transform.size = {200,200}
 
     
+    inventory_handler := og.new_gameobject(game.ecs)
+    og.add_component(inventory_handler, ecs.NewScriptComponent(ecs.NewScript(
+        update = proc(data:ecs.ScriptData) {
+            process_transfers(transfer_requests[:])
+            clear(&transfer_requests)
+        }
+    )))
 
     _map := tiled.load_map(game.assetsManager, "./assets/map.tmj")
     fmt.println("MAP:",_map.tilesets)
@@ -84,6 +91,9 @@ main :: proc() {
             
         }
     });
+    for i in 0..<1 {
+        create_harvest(game, {200+f32(100*i), 200})
+    }
 
     og.start_game(game);
     og.destroy_game(game);

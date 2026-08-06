@@ -21,6 +21,5 @@ create_field :: proc (game: ^og.Game, pos: [2]f32) {
 
     sprite := io.load(game.assetsManager, "./assets/farm/field.png")
     og.add_component(field, ecs.Tag({tag="field"}))
-    og.add_component(field, ecs.NewRigidbody(type=ecs.BodyType.staticBody))
     og.add_component(field, ecs.NewSpriteRenderer(sprite=sprite, layer=-1))
 }

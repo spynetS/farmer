@@ -41,8 +41,8 @@ generate_item_from_tag :: proc(tag: ItemTag) -> (Item, bool) #optional_ok {
             gs :f32= 100
             wp := input.get_world_mouse_position()
             wp = {
-                math.round_f32((wp.x - gs/2) / gs) * gs + gs / 2,
-                math.round_f32((wp.y - gs/2) / gs) * gs + gs / 2
+                math.round_f32((wp.x) / gs) * gs,
+                math.round_f32((wp.y) / gs) * gs
             }
 
             //og.add_child(data.gameObject, create_tool(game))
@@ -56,11 +56,11 @@ generate_item_from_tag :: proc(tag: ItemTag) -> (Item, bool) #optional_ok {
         return Item({tag=tag, use=proc(item: ^Item, data:ecs.ScriptData) {
             pdata := cast(^PlayerData)data.data
 
-            gs :f32= 100
+            gs : f32 = 100
             wp := input.get_world_mouse_position()
             wp = {
-                math.round_f32((wp.x - gs/2) / gs) * gs + gs / 2,
-                math.round_f32((wp.y - gs/2) / gs) * gs + gs / 2
+                math.round_f32((wp.x) / gs) * gs,
+                math.round_f32((wp.y) / gs) * gs
             }
 
             if get_count(&pdata.inventory, item.tag) > 0 {

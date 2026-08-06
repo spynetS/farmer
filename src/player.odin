@@ -33,8 +33,11 @@ lerp :: proc (a, b: og.Vector2, t:f32) -> og.Vector2 {
     return a + (b - a) * t
 }
 
+playerData : ^PlayerData
+
 create_player :: proc (game: ^og.Game) {
     pData := new(PlayerData)
+    playerData = pData
 
     append(&pData.inventory.filter,
            ItemTag(.WOOD),
@@ -61,7 +64,7 @@ create_player :: proc (game: ^og.Game) {
     og.add_component(camera, ecs.NewScriptComponent(ecs.NewScript(data=pData, update = proc (data: ecs.ScriptData) {
         pdata := cast(^PlayerData)data.data
         pt := og.get_component(pdata.gameObject, ecs.Transform)
-        data.gameObject.transform.pos = lerp(data.gameObject.transform.pos, pt.pos, 0.07)
+        data.gameObject.transform.pos = lerp(data.gameObject.transform.pos, pt.pos, 0.05)
     })))
 
     leng := make([]int,3)
@@ -152,12 +155,17 @@ player_update :: proc(data: ecs.ScriptData) {
     }
 
     
-    gs :f32= 100
+    gs :f32 = 100
     wp := input.get_world_mouse_position()
+    // wp = {
+    //     math.round_f32((wp.x - gs/2) / gs) * gs + gs / 2,
+    //     math.round_f32((wp.y - gs/2) / gs) * gs + gs / 2 
+    // }
     wp = {
-        math.round_f32((wp.x - gs/2) / gs) * gs + gs / 2,
-        math.round_f32((wp.y - gs/2) / gs) * gs + gs / 2
+        math.round_f32(wp.x/gs) * gs,
+        math.round_f32(wp.y/gs) * gs
     }
+
 
     // rendering the tileselector
     sprite := io.load(game.assetsManager, "./assets/tileselector.png")
@@ -189,12 +197,6 @@ player_update :: proc(data: ecs.ScriptData) {
         t.transform.local_pos = input.get_mouse_position().x > 1920/2 ? {30,0} : {-30,0}
         og.add_child(data.gameObject, t)
 
-
-        if result.hit {
-            entity := data.world.entites_by_shape[result.shapeId]
-            fmt.println(result)
-            fmt.println(entity)
-        }
     }
     
     // Handle inventory item selection

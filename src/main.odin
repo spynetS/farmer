@@ -85,7 +85,6 @@ main :: proc() {
         }
     });
 
-
     og.start_game(game);
     og.destroy_game(game);
 }

@@ -17,6 +17,11 @@ Resource :: struct {
     health  : f32,
 }
 
+Timer :: struct {
+    max_time: f32,
+    current_time: f32
+}
+
 create_resource :: proc (health: f32 = 5) -> ecs.Script {
 
     data := new(Resource)
@@ -63,6 +68,32 @@ create_resource :: proc (health: f32 = 5) -> ecs.Script {
         on_raycast_hit = proc(data: ecs.ScriptData) {
             rdata := cast(^Resource)data.data
             rdata.state = ResourceState.BEGIN_DAMAGE
+
+            timer := new(Timer)
+            timer.max_time = 0.2
+
+            inventory := og.new_gameobject(game.ecs)
+            inventory.transform.pos = data.gameObject.transform.pos + {0,data.gameObject.transform.size.y/2+40}
+            og.add_component(inventory, ecs.NewText("35", color={255,255,255,255}))
+            rigid := og.add_component(inventory, ecs.NewRigidbody(type=ecs.BodyType.dynamicBody, disabled_gravity=true, disabled_rotation=true))
+            
+
+            og.add_component(inventory, ecs.NewScriptComponent(ecs.NewScript(
+                data=timer,
+                on_destroy = proc(data:ecs.ScriptData) {
+                    timer := cast(^Timer)data.data
+                    if timer != nil do free(timer)
+                },
+                update = proc(data:ecs.ScriptData) {
+                    timer := cast(^Timer)data.data
+                    timer.current_time += data.dt
+                    if timer.current_time >= timer.max_time {
+                        ecs.destroy_entity(data.gameObject.ecs, data.gameObject.entity)
+                    }
+                    og.apply_force(data.gameObject.entity, {0,1})
+                }
+            )))
+
         }
     )
 }

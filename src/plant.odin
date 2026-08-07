@@ -33,7 +33,7 @@ create_plant :: proc(game: ^og.Game, pos: [2]f32, item: ItemTag) -> (og.GameObje
     og.add_component(plant, ecs.NewCollider(trigger=true))
 
 
-//    og.add_component(plant, ecs.NewTag(item_tag_to_string(item)))
+    og.add_component(plant, ecs.NewTag("plant"))
     og.add_component(plant, ecs.NewSpriteRenderer())
     og.add_component(plant, ecs.NewSpriteAnimator(sprites=tilesheet.sprites, manual = true))
     plant_machine := machine_factory(item)
@@ -55,8 +55,8 @@ create_plant :: proc(game: ^og.Game, pos: [2]f32, item: ItemTag) -> (og.GameObje
         on_raycast_hit = proc(data: ecs.ScriptData) {
             machine := cast(^Machine)data.data
             if machine.slots[0].working == true do return
-            machine_drop_items(machine, machine.slots[0], data.gameObject.transform.pos)
-            ecs.destroy_entity(data.gameObject.ecs, data.gameObject.entity)
+            // machine_drop_items(machine, machine.slots[0], data.gameObject.transform.pos)
+            
 
         }
     )))

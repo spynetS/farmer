@@ -14,6 +14,8 @@ import "core:math/linalg"
 game: ^og.Game
 transfer_requests :[dynamic]TransferRequest
 
+machine_inv : ^Inventory
+
 create_debug :: proc(game: ^og.Game) {
     fps := og.new_gameobject(game.ecs)
     fps.transform.pos = {1050,50}
@@ -53,6 +55,8 @@ main :: proc() {
     og.add_component(start_hoe, ecs.NewSpriteRenderer(sprite=io.load(game.assetsManager, "./assets/farm/objects&items/hoe.png")))
 
     machine := machine_factory(.WOOD)
+    machine_inv = &machine.input
+
     machine.on_slot_working = proc (machine: ^Machine, slot: ^Slot, gameobject: og.GameObject) {
         anim, has_anim := og.get_component(gameobject, ecs.SpriteAnimator)
         anim.active_animation = 1

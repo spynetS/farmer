@@ -1,6 +1,7 @@
 package main;
 
 import rn "../ogamer/renderer"
+import og "../ogamer/"
 import "../ogamer/io"
 import "../ogamer/ecs"
 import "core:fmt"
@@ -14,11 +15,17 @@ TransferRequest :: struct {
     amount    : int,
 }
 
+Pipe :: struct {
+    input : ^Inventory,
+    output : ^Inventory
+}
+
+// TODO add capacity
 Inventory :: struct {
     items: map[ItemTag]Item,
     count: map[ItemTag]int,
     sprites: map[ItemTag]io.Sprite,
-    filter: [dynamic]ItemTag
+    filter: [dynamic]ItemTag,
 }
 ItemTag :: enum {
     WOOD,
@@ -165,5 +172,34 @@ draw_inventory :: proc(renderer: ^rn.Renderer, inv: ^Inventory, selected_index: 
         
         i+=1
     }
-    
+}
+
+create_pipe :: proc (game: ^og.Game, input, output: ^Inventory) {
+    pipe_obj := og.new_gameobject(game.ecs)
+    og.add_component(pipe_obj, ecs.NewShapeRenderer())
+
+    pipe := new(Pipe)
+    pipe.input = input
+    pipe.output = output
+
+    og.add_component(pipe_obj, ecs.NewScriptComponent(ecs.NewScript(
+        data = pipe,
+        update = proc(data: ecs.ScriptData) {
+            pipe := cast(^Pipe) data.data
+            items := get_items_as_list(pipe.input)
+
+            for item in items {
+                append(&transfer_requests, TransferRequest({
+                    from=pipe.input,
+                    to=pipe.output,
+                    item = item,
+                    amount = pipe.input.count[item]
+                }))
+            }
+                       
+            delete(items)
+        }
+    )))
+
+
 }

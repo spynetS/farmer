@@ -24,8 +24,10 @@ Slot :: struct {
     working : bool
 }
 
+
 Machine :: struct {
-    inventory       : Inventory,
+    input           : Inventory,
+    output          : Inventory,
     tag             : MachineTag,
     slots           : [dynamic]Slot,    // recipes that are worked on
     on_slot_working : proc (^Machine, ^Slot, og.GameObject),
@@ -33,7 +35,7 @@ Machine :: struct {
 }
 
 machine_add_item :: proc(machine: ^Machine, item: Item) -> bool {
-    return add_item(&machine.inventory, item)
+    return add_item(&machine.input, item)
 }
 
 machine_set_slot :: proc(machine: ^Machine, slot: Slot, index: int) -> bool {
@@ -50,6 +52,8 @@ machine_set_slot :: proc(machine: ^Machine, slot: Slot, index: int) -> bool {
 create_machine_drop :: proc (game: ^og.Game, machine: ^Machine) -> og.GameObject {
     machine_obj := og.new_gameobject(game.ecs)
     og.add_component(machine_obj, ecs.NewRigidbody(type=ecs.BodyType.staticBody))
+    og.add_component(machine_obj, ecs.NewCollider(trigger=true))
+    og.add_component(machine_obj, ecs.NewTag("wood_machine"))
     
     og.add_component(machine_obj, ecs.NewScriptComponent(ecs.NewScript(
         data=machine,
@@ -75,9 +79,8 @@ machine_drop_items :: proc (mdata: ^Machine, slot: Slot, pos: og.Vector2) {
             item := create_item(game, pos, generate_item_from_tag(o_item))
             og.add_component(item, ecs.NewSpriteRenderer(sprite=get_item_sprite(o_item), layer=100))
         }
-        remove_item(&mdata.inventory, o_item, slot.recipe.input[o_item])
+        remove_item(&mdata.output, o_item, slot.recipe.input[o_item])
     }
-
 }
 
 machine_script :: proc(data:ecs.ScriptData) {
@@ -90,6 +93,9 @@ machine_script :: proc(data:ecs.ScriptData) {
 
             // Its done
             if slot.time >= slot.recipe.time {
+                for o_item, amount in slot.recipe.output {
+                    add_item(&mdata.output, generate_item_from_tag(o_item), amount=amount)
+                }
                 slot.time = 0
                 slot.working = false
                 if mdata.on_slot_done != nil do mdata.on_slot_done(mdata, &slot, data.gameObject)
@@ -98,7 +104,7 @@ machine_script :: proc(data:ecs.ScriptData) {
         else {
             not_enough := true
             for tag, amount in slot.recipe.input {
-                if mdata.inventory.count[tag] >= amount {
+                if mdata.input.count[tag] >= amount {
                     not_enough = false
                 }
             }
@@ -107,7 +113,7 @@ machine_script :: proc(data:ecs.ScriptData) {
                 continue
             }
             for tag, amount in slot.recipe.input {
-                remove_item(&mdata.inventory, tag, amount)
+                remove_item(&mdata.input, tag, amount)
             }
             slot.working = true            
         }
@@ -142,7 +148,7 @@ machine_factory :: proc (tag: MachineTag) -> ^Machine {
 
         
         machine := new(Machine)
-        append(&machine.inventory.filter,
+        append(&machine.input.filter,
                ItemTag(.PUMPKIN),
                ItemTag(.CARROT),
                ItemTag(.WOOD)
@@ -165,10 +171,13 @@ machine_factory :: proc (tag: MachineTag) -> ^Machine {
         machine.tag = .PUMPKIN_SEED
 
         machine_set_slot(machine, slot, 0)
-        append(&machine.inventory.filter,
+        append(&machine.input.filter,
                ItemTag(.PUMPKIN_SEED),
               )
-        add_item(&machine.inventory, generate_item_from_tag(.PUMPKIN_SEED))
+        append(&machine.output.filter,
+               ItemTag(.PUMPKIN),
+              )
+        add_item(&machine.input, generate_item_from_tag(.PUMPKIN_SEED))
 
 
         return machine
@@ -185,10 +194,14 @@ machine_factory :: proc (tag: MachineTag) -> ^Machine {
         machine.tag = .CARROT_SEED
 
         machine_set_slot(machine, slot, 0)
-        append(&machine.inventory.filter,
+        append(&machine.input.filter,
                ItemTag(.CARROT_SEED),
               )
-        add_item(&machine.inventory, generate_item_from_tag(.CARROT_SEED))
+        append(&machine.output.filter,
+               ItemTag(.CARROT),
+              )
+
+        add_item(&machine.input, generate_item_from_tag(.CARROT_SEED))
 
 
         return machine

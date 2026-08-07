@@ -26,7 +26,9 @@ PlayerData :: struct {
     gameObject: ecs.GameObject,
     selected_tool: int,
     start, end : [2]f32,
-    inventory: Inventory
+    inventory: Inventory,
+    pipe_input: ^Inventory,
+    pipe_output: ^Inventory,
 }
 
 lerp :: proc (a, b: og.Vector2, t:f32) -> og.Vector2 {
@@ -38,6 +40,8 @@ playerData : ^PlayerData
 create_player :: proc (game: ^og.Game) {
     pData := new(PlayerData)
     playerData = pData
+    pData.pipe_input = nil
+    pData.pipe_output = nil
 
     append(&pData.inventory.filter,
            ItemTag(.WOOD),
@@ -53,7 +57,7 @@ create_player :: proc (game: ^og.Game) {
 
     pData.gameObject = player
 
-
+    
     og.add_component(player, ecs.NewRigidbody(type=ecs.BodyType.dynamicBody, disabled_gravity=true, disabled_rotation=true, linear_damping=10))
     og.add_component(player, ecs.NewCollider(trigger=true, size={-60,0}))
     og.add_component(player, ecs.NewDepthSort(offset={0,20}))
@@ -144,6 +148,36 @@ player_update :: proc(data: ecs.ScriptData) {
         pdata.state = .WALKING_DOWN
         og.apply_force(data.gameObject.entity, {0,-1}*SPEED)
     }
+
+    if og.is_key_pressed(input.KeyboardKey.SPACE) {
+        wp := input.get_world_mouse_position()
+        if game_obj, found := ecs.get_gameobject_pos(game.ecs, wp); found {
+            fmt.println("game_obj")
+            if tag, has := og.get_component(game_obj, ecs.Tag); has {
+                switch tag.tag {
+                case "harvester":
+                    harvester := cast(^Harvester) og.get_component(game_obj, ecs.ScriptComponent).scripts[0].data
+                    if pdata.pipe_input == nil do pdata.pipe_input = &harvester.output
+//                    else do pdata.pipe_output = &harvester.input
+
+                case "wood_machine":
+                    machine := cast(^Machine) og.get_component(game_obj, ecs.ScriptComponent).scripts[0].data
+                    if pdata.pipe_input == nil do pdata.pipe_input = &machine.output
+                    else do pdata.pipe_output = &machine.input
+                }
+                if pdata.pipe_output != nil {
+                    fmt.println(pdata.pipe_input, pdata.pipe_output)
+
+                    create_pipe(game, pdata.pipe_input, pdata.pipe_output)
+                    pdata.pipe_input = nil
+                    pdata.pipe_output = nil
+                }
+            }
+            
+        }
+
+    }
+
 
     // DROPPING SELECTED ITEM
     if og.is_key_pressed(input.KeyboardKey.Q) {

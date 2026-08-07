@@ -149,34 +149,6 @@ player_update :: proc(data: ecs.ScriptData) {
         og.apply_force(data.gameObject.entity, {0,-1}*SPEED)
     }
 
-    if og.is_key_pressed(input.KeyboardKey.SPACE) {
-        wp := input.get_world_mouse_position()
-        if game_obj, found := ecs.get_gameobject_pos(game.ecs, wp); found {
-            fmt.println("game_obj")
-            if tag, has := og.get_component(game_obj, ecs.Tag); has {
-                switch tag.tag {
-                case "harvester":
-                    harvester := cast(^Harvester) og.get_component(game_obj, ecs.ScriptComponent).scripts[0].data
-                    if pdata.pipe_input == nil do pdata.pipe_input = &harvester.output
-//                    else do pdata.pipe_output = &harvester.input
-
-                case "wood_machine":
-                    machine := cast(^Machine) og.get_component(game_obj, ecs.ScriptComponent).scripts[0].data
-                    if pdata.pipe_input == nil do pdata.pipe_input = &machine.output
-                    else do pdata.pipe_output = &machine.input
-                }
-                if pdata.pipe_output != nil {
-                    fmt.println(pdata.pipe_input, pdata.pipe_output)
-
-                    create_pipe(game, pdata.pipe_input, pdata.pipe_output)
-                    pdata.pipe_input = nil
-                    pdata.pipe_output = nil
-                }
-            }
-            
-        }
-
-    }
 
 
     // DROPPING SELECTED ITEM
@@ -191,13 +163,20 @@ player_update :: proc(data: ecs.ScriptData) {
     
     gs :f32 = 100
     wp := input.get_world_mouse_position()
-    // wp = {
-    //     math.round_f32((wp.x - gs/2) / gs) * gs + gs / 2,
-    //     math.round_f32((wp.y - gs/2) / gs) * gs + gs / 2 
-    // }
     wp = {
         math.round_f32(wp.x/gs) * gs,
         math.round_f32(wp.y/gs) * gs
+    }
+
+    if og.is_key_pressed(input.KeyboardKey.SPACE) {
+        create_pipe(game, wp, nil, nil)
+    }
+    if og.is_key_pressed(input.KeyboardKey.R) {
+        if gameobject, found := ecs.get_gameobject_pos_all(data.ecs, wp); found {
+            if tag, found := og.get_component(gameobject, ecs.Tag); found && tag.tag == "pipe" {
+                rotate_pipe(gameobject)
+            }
+        }            
     }
 
 

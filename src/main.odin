@@ -68,8 +68,8 @@ main :: proc() {
     }
     
     wood_machine := create_machine_drop(game, machine)
-    og.add_component(wood_machine, ecs.NewSpriteAnimator(sprites=io.new_tilesheet(game.assetsManager, "./assets/wood_machine.png", {32,32}).sprites))
-    wood_machine.transform.size = {200,200}
+    og.add_component(wood_machine, ecs.NewSpriteAnimator(sprites=io.new_tilesheet(game.assetsManager, "./assets/wood_machine.png", {16,16}).sprites))
+    wood_machine.transform.size = {100,100}
 
     
     inventory_handler := og.new_gameobject(game.ecs)
@@ -95,8 +95,8 @@ main :: proc() {
             
         }
     });
-    for i in 0..<1 {
-        create_harvest(game, {200+f32(100*i), 200})
+    for i in 0..<3 {
+        create_harvest(game, {200+f32(100*i), 0})
     }
 
     og.start_game(game);

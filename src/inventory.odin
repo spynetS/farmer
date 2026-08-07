@@ -4,8 +4,10 @@ import rn "../ogamer/renderer"
 import og "../ogamer/"
 import "../ogamer/io"
 import "../ogamer/ecs"
+import "../ogamer/input"
 import "core:fmt"
 import "core:slice"
+import "core:math"
 
 // This is used to transfer items between inventories
 TransferRequest :: struct {
@@ -16,8 +18,10 @@ TransferRequest :: struct {
 }
 
 Pipe :: struct {
+    buffer : Inventory,
     input : ^Inventory,
-    output : ^Inventory
+    output : ^Inventory,
+    current_time : f32,
 }
 
 // TODO add capacity
@@ -107,6 +111,7 @@ get_items_as_list :: proc (inv: ^Inventory) -> []ItemTag {
     // len(inv.count)
     keys := make([dynamic]ItemTag)
     for key in inv.count {
+        if inv.count[key] <= 0 do continue
         append(&keys, key)
     }
     k := keys[:]
@@ -174,32 +179,3 @@ draw_inventory :: proc(renderer: ^rn.Renderer, inv: ^Inventory, selected_index: 
     }
 }
 
-create_pipe :: proc (game: ^og.Game, input, output: ^Inventory) {
-    pipe_obj := og.new_gameobject(game.ecs)
-    og.add_component(pipe_obj, ecs.NewShapeRenderer())
-
-    pipe := new(Pipe)
-    pipe.input = input
-    pipe.output = output
-
-    og.add_component(pipe_obj, ecs.NewScriptComponent(ecs.NewScript(
-        data = pipe,
-        update = proc(data: ecs.ScriptData) {
-            pipe := cast(^Pipe) data.data
-            items := get_items_as_list(pipe.input)
-
-            for item in items {
-                append(&transfer_requests, TransferRequest({
-                    from=pipe.input,
-                    to=pipe.output,
-                    item = item,
-                    amount = pipe.input.count[item]
-                }))
-            }
-                       
-            delete(items)
-        }
-    )))
-
-
-}
